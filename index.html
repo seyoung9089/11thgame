@@ -51,7 +51,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--bolt);outline-o
 .msg{font-size:14px;color:var(--bolt);min-height:1.5em;margin:0 0 10px}
 .pad{display:none;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px;justify-content:center;margin-top:14px;user-select:none;-webkit-user-select:none}
 .pad button{background:#2f2843;color:var(--ink);font-size:22px;border:1px solid var(--line);touch-action:none}
-.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}.pad .dashBtn{grid-column:3;grid-row:1;background:var(--bolt);color:#1a1508;font-size:15px;font-weight:900;border:0;white-space:nowrap;padding:0}
 @media (pointer:coarse),(max-width:700px){.pad{display:grid}}
 .rank{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
 .rank h2{font:400 26px/1.1 "Black Han Sans",sans-serif;margin:0 0 12px}
@@ -175,6 +175,7 @@ body.ingame{overflow:hidden}
       <button class="l" data-d="left" aria-label="왼쪽">◀</button>
       <button class="d" data-d="down" aria-label="아래">▼</button>
       <button class="r" data-d="right" aria-label="오른쪽">▶</button>
+      <button class="dashBtn" id="dashBtn" type="button" aria-label="대쉬">대쉬</button>
     </div>
   </div>
 </main>
@@ -284,7 +285,7 @@ const release=d=>{if(hold[d])hold[d].down=false};
 const live=d=>{const h=hold[d];return h&&(h.down||performance.now()-h.t<MINTAP)?h.t:0};
 const axis=(neg,pos)=>{const a=live(neg),b=live(pos);return a&&b?(b>a?1:-1):b?1:a?-1:0};
 function reset(){
-  G={p:{x:.5,y:.55,vx:0,vy:0,face:1,step:0,lean:0},stars:[],strikes:[],scorch:[],fx:[],dust:[],score:0,t:0,spawn:1.2,combo:1,last:-9,gold:null,goldIn:9,idle:0,shake:0,flash:0,dead:false};
+  G={p:{x:.5,y:.55,vx:0,vy:0,face:1,step:0,lean:0,dx:1,dy:0},dash:{t:0,cd:0,vx:0,vy:0,ready:0},ghost:[],stars:[],strikes:[],scorch:[],fx:[],dust:[],score:0,t:0,spawn:1.2,combo:1,last:-9,gold:null,goldIn:9,idle:0,shake:0,flash:0,dead:false};
   addStar();addStar();addStar();
 }
 const inWarn=(x,y,pad)=>G.strikes.some(s=>dist(x,y,s.x,s.y)<s.r+pad);
@@ -312,6 +313,15 @@ function gain(pts,x,y,gold){
   G.combo=(G.t-G.last<1.5)?Math.min(G.combo+1,5):1;G.last=G.t;
   const v=pts*G.combo;G.score+=v;G.fx.push({x,y,txt:'+'+v+(G.combo>1?' x'+G.combo:''),life:1,gold});
 }
+const DASH_DIST=.17, DASH_TIME=.14, DASH_CD=5;
+function dash(){
+  if(state!=='play'||!G||G.dash.cd>0||G.dash.t>0)return;
+  let ix=axis('left','right'), iy=axis('up','down');
+  if(joy.on){const jx=joy.x-joy.sx,jy=joy.y-joy.sy,l=Math.hypot(jx,jy);if(l>8){ix=jx/l;iy=jy/l}}
+  let l=Math.hypot(ix,iy);if(!l){ix=G.p.dx;iy=G.p.dy;l=Math.hypot(ix,iy)||1}
+  const v=DASH_DIST/DASH_TIME;G.dash.vx=ix/l*v;G.dash.vy=iy/l*v;G.dash.t=DASH_TIME;G.dash.cd=DASH_CD;
+  if(ix)G.p.face=Math.sign(ix);G.idle=0;puff(G.p.x,G.p.y);puff(G.p.x,G.p.y);
+}
 function die(){G.dead=true;state='dying';G.shake=calm?0:.5;setTimeout(()=>{state='over';showOver()},900)}
 function puff(x,y){if(calm)return;for(let i=0;i<4;i++)G.dust.push({x:x+(Math.random()-.5)*.02,y:y+PR*.9,vx:(Math.random()-.5)*.08,vy:-Math.random()*.05,life:.35})}
 function update(dt){
@@ -319,8 +329,12 @@ function update(dt){
   let ix=axis('left','right'), iy=axis('up','down');
   if(joy.on){const jx=joy.x-joy.sx,jy=joy.y-joy.sy,l=Math.hypot(jx,jy);if(l>8){ix=jx/l;iy=jy/l}}
   const l=Math.hypot(ix,iy);if(l>1){ix/=l;iy/=l}
-  const P=G.p, wasStill=!P.vx&&!P.vy, oldFace=P.face;
-  P.vx=ix*SPD;P.vy=iy*SPD;
+  const P=G.p, wasStill=!P.vx&&!P.vy, oldFace=P.face, D=G.dash;
+  if(l>0){P.dx=ix/(Math.hypot(ix,iy)||1);P.dy=iy/(Math.hypot(ix,iy)||1)}
+  if(D.cd>0){D.cd=Math.max(0,D.cd-dt);if(D.cd===0)D.ready=.6}
+  if(D.ready>0)D.ready-=dt;
+  if(D.t>0){D.t-=dt;P.vx=D.vx;P.vy=D.vy;if(!calm)G.ghost.push({x:P.x,y:P.y,face:P.face,life:.25})}
+  else{P.vx=ix*SPD;P.vy=iy*SPD}
   P.x=clamp(P.x+P.vx*dt,PR,1-PR);P.y=clamp(P.y+P.vy*dt,PR,1-PR);
   if(l>0){G.idle=0;P.step+=dt*16;if(ix)P.face=Math.sign(ix);if(wasStill||P.face!==oldFace)puff(P.x,P.y)}else{G.idle+=dt;P.step=0}
   P.lean=ix*.12;
@@ -334,7 +348,7 @@ function update(dt){
     if(s.age>=s.warn&&!s.hit){s.hit=true;G.flash=calm?.08:.22;G.shake=Math.max(G.shake,calm?0:.12);
       for(let i=G.stars.length-1;i>=0;i--)if(dist(s.x,s.y,G.stars[i].x,G.stars[i].y)<s.r){G.stars.splice(i,1);setTimeout(()=>state==='play'&&addStar(),500)}
       if(G.gold&&dist(s.x,s.y,G.gold.x,G.gold.y)<s.r)G.gold=null}
-    if(s.age>=s.warn&&s.age<s.warn+.22&&!G.dead&&dist(s.x,s.y,P.x,P.y)<s.r+PR*.5)die();
+    if(s.age>=s.warn&&s.age<s.warn+.22&&!G.dead&&G.dash.t<=0&&dist(s.x,s.y,P.x,P.y)<s.r+PR*.5)die();
   }
   G.strikes=G.strikes.filter(s=>{if(s.age>=s.warn+.24){G.scorch.push({x:s.x,y:s.y,r:s.r,life:1});return false}return true});
 }
@@ -376,6 +390,9 @@ function draw(dt){
     ctx.shadowColor='#ff9f1c';ctx.shadowBlur=22;ctx.fillStyle='#ffb52e';starPath(x,y,R);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#fff1c9';ctx.lineWidth=2.5;ctx.stroke()}
   for(const d of G.dust){d.life-=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;circ(ctx,d.x*W,d.y*W,W*.008*(1+(.35-d.life)*3),`rgba(220,235,200,${Math.max(0,d.life)*1.4})`)}
   G.dust=G.dust.filter(d=>d.life>0);
+  for(const g of G.ghost){g.life-=dt;ctx.save();ctx.globalAlpha=Math.max(0,g.life)*1.6;ctx.translate(g.x*W,g.y*W);drawAvatar(ctx,avatar,0,0,PR*W,g.face,false);ctx.restore()}
+  G.ghost=G.ghost.filter(g=>g.life>0);
+  if(G.dash.t>0){ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(G.p.x*W,G.p.y*W,PR*W*1.35,0,7);ctx.stroke()}
   hero();
   for(const s of G.strikes){if(s.age<s.warn||s.age>s.warn+.24)continue;
     const cx=s.x*W,cy=s.y*W,sx=cx+(Math.random()-.5)*W*.15,seg=9,pts=[[sx,-10]];
@@ -406,9 +423,18 @@ function hud(){
   ctx.fillStyle='#f3efe6';ctx.font=`700 ${small}px "Noto Sans KR",sans-serif`;ctx.fillText('버틴 시간 '+tm,W-pad*1.8,pad*1.5+big);
   if(cb){ctx.fillStyle='#ffb52e';ctx.font=`900 ${small+4}px "Noto Sans KR",sans-serif`;ctx.lineWidth=4;ctx.strokeStyle='#120f1a';
     const t='콤보 x'+G.combo;ctx.strokeText(t,W-pad*1.8,pad*2+bh);ctx.fillText(t,W-pad*1.8,pad*2+bh)}
+  { const r=clamp(W*.045,18,30),cx=pad+r+4,cy=W-pad-r-4,D=G.dash,k=D.cd/DASH_CD;
+    ctx.fillStyle='rgba(18,15,26,.6)';ctx.beginPath();ctx.arc(cx,cy,r+5,0,7);ctx.fill();
+    ctx.fillStyle=k>0?'rgba(255,233,77,.25)':'#ffe94d';ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
+    if(k>0){ctx.fillStyle='rgba(18,15,26,.75)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*k);ctx.closePath();ctx.fill()}
+    if(D.ready>0){ctx.strokeStyle=`rgba(255,250,200,${D.ready/.6})`;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r+5+(.6-D.ready)*20,0,7);ctx.stroke()}
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=k>0?'#f3efe6':'#1a1508';
+    ctx.font=`900 ${Math.round(r*.62)}px "Noto Sans KR",sans-serif`;ctx.fillText(k>0?Math.ceil(D.cd)+'':'대쉬',cx,cy);
+    if(!matchMedia('(pointer:coarse)').matches){ctx.textAlign='left';ctx.font=`700 ${Math.round(r*.5)}px "Noto Sans KR",sans-serif`;ctx.lineWidth=4;ctx.strokeStyle='rgba(18,15,26,.7)';ctx.strokeText('Space',cx+r+12,cy);ctx.fillStyle='#f3efe6';ctx.fillText('Space',cx+r+12,cy)}
+    ctx.textAlign='right';ctx.textBaseline='top'}
   if(state==='play'&&G.t<3){ctx.globalAlpha=Math.min(1,3-G.t);ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font=`700 ${small+2}px "Noto Sans KR",sans-serif`;
-    const t=matchMedia('(pointer:coarse)').matches?'화면을 누른 채 끌거나 방향 버튼으로 이동':'방향키 · WASD로 이동';
-    ctx.lineWidth=5;ctx.strokeStyle='rgba(18,15,26,.8)';ctx.strokeText(t,W/2,W-pad*1.5);ctx.fillStyle='#fff';ctx.fillText(t,W/2,W-pad*1.5)}
+    const t=matchMedia('(pointer:coarse)').matches?'끌거나 방향 버튼으로 이동 · 대쉬 버튼':'방향키·WASD로 이동 · 스페이스바로 대쉬';
+    ctx.lineWidth=5;ctx.strokeStyle='rgba(18,15,26,.8)';const hy=W-pad-clamp(W*.045,18,30)*2-22;ctx.strokeText(t,W/2,hy);ctx.fillStyle='#fff';ctx.fillText(t,W/2,hy)}
   ctx.restore();
 }
 let prev=performance.now();
@@ -458,14 +484,16 @@ addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'){if(e.key==='Enter'){e.preventDefault();play()}return}
   const d=keymap[e.code];
   if(d){if(state==='play'||state==='dying')e.preventDefault();if(!e.repeat)press(d);return}
+  if(e.code==='Space'&&(state==='play'||state==='dying')){e.preventDefault();if(!e.repeat)dash();return}
   if((e.key==='Enter'||e.key===' ')&&state==='over'&&!$('game').hidden&&e.target.tagName!=='BUTTON'){e.preventDefault();start()}
 });
 addEventListener('keyup',e=>{const d=keymap[e.code];if(d)release(d)});
 addEventListener('blur',clearInput);
-document.querySelectorAll('.pad button').forEach(b=>{
+document.querySelectorAll('.pad button[data-d]').forEach(b=>{
   const d=b.dataset.d;b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);press(d)});
   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,()=>release(d)));
 });
+$('dashBtn').addEventListener('pointerdown',e=>{e.preventDefault();dash()});
 cv.addEventListener('pointerdown',e=>{if(state!=='play')return;joy.on=true;joy.sx=joy.x=e.clientX;joy.sy=joy.y=e.clientY;cv.setPointerCapture?.(e.pointerId)});
 cv.addEventListener('pointermove',e=>{if(joy.on){joy.x=e.clientX;joy.y=e.clientY}});
 ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>{joy.on=false}));
