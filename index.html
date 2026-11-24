@@ -333,16 +333,16 @@ function freeSpot(){
 }
 function addStar(){const f=freeSpot();if(f)G.stars.push({...f,b:Math.random()*6})}
 function strike(x,y,r,warn,o){G.strikes.push({x:clamp(x,.03,.97),y:clamp(y,.03,.97),r,age:0,warn,ox:o?o.x:null,oy:o?o.y:null})}
-/* ---------- 토르: 30초부터 10초마다 등장, 갈수록 강해짐 ---------- */
+/* ---------- 토르: 30초부터 20초마다 등장, 갈수록 강해짐 ---------- */
 const THOR_IN=.8, THOR_CHARGE=1.1, THOR_OUT=.6;
 const thorPow=k=>({gap:Math.max(.08,.22-.012*k),dur:Math.min(4,1.4+.2*k),warn:Math.max(.45,.72-.02*k),rad:Math.min(.11,.07+.005*k),lanes:k>=7?2:k>=3?1:0});
 const hammerPos=()=>({x:G.thor.x+.075,y:.12});
 function thorLane(horizontal,pos,warn){const o=hammerPos();for(let i=0;i<7;i++){const v=.07+i*.143;horizontal?strike(v,pos,.08,warn+i*.07,o):strike(pos,v,.08,warn+i*.07,o)}}
 function updateThor(dt){
   const T=G.thor,P=G.p;
-  if(!T){if(G.t>=G.thorNext){G.thorK++;G.thor={phase:'in',t:0,k:G.thorK,x:clamp(P.x,.2,.6),fireT:0,n:0};G.thorNext+=10}return}
+  if(!T){if(G.t>=G.thorNext){G.thorK++;G.thor={phase:'in',t:0,k:G.thorK,x:clamp(P.x,.2,.6),fireT:0,n:0};G.thorNext+=20}return}
   T.t+=dt;T.x+=(clamp(P.x,.18,.6)-T.x)*Math.min(1,dt*(T.phase==='fire'?1.2:2.5));
-  const pw=thorPow(T.k);
+  const pw=thorPow(1+(T.k-1)*2);
   if(T.phase==='in'&&T.t>=THOR_IN){T.phase='charge';T.t=0}
   else if(T.phase==='charge'&&T.t>=THOR_CHARGE){T.phase='fire';T.t=0;G.shake=Math.max(G.shake,calm?0:.35);G.flash=calm?.1:.35;
     if(pw.lanes>=1){const h=Math.random()<.5;thorLane(h,h?P.y:P.x,pw.warn+.15)}
@@ -748,7 +748,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-24-1625';
+const BUILD='2026-11-24-1630';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   if(m&&m[1]!==BUILD){$('upd').hidden=false;if(state!=='play'&&!$('home').hidden&&!sessionStorage.getItem('bolt-upd-'+m[1])){try{sessionStorage.setItem('bolt-upd-'+m[1],'1')}catch(e){}location.replace(freshUrl())}}}catch(e){}}
