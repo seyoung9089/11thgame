@@ -418,7 +418,7 @@ function drawBoot(c,x,y,R){c.save();c.translate(x,y);
   c.fillStyle='#2f7de1';c.beginPath();c.moveTo(-R*.4,-R*.9);c.lineTo(R*.15,-R*.9);c.lineTo(R*.2,R*.15);c.quadraticCurveTo(R*.95,R*.15,R*.95,R*.6);c.lineTo(-R*.45,R*.6);c.closePath();c.fill();
   c.fillStyle='#ffcf2e';c.fillRect(-R*.45,-R*.95,R*.65,R*.22);c.fillStyle='#1d4f99';c.fillRect(-R*.45,R*.45,R*1.4,R*.18);
   c.fillStyle='rgba(255,255,255,.35)';c.fillRect(-R*.3,-R*.6,R*.12,R*.7);c.restore()}
-const DASH_DIST=.17, DASH_TIME=.14, DASH_CD=5;
+const DASH_DIST=.17, DASH_TIME=.14, DASH_CD=2;
 function dash(){
   if(state!=='play'||!G||G.dash.cd>0||G.dash.t>0)return;
   let ix=axis('left','right'), iy=axis('up','down');
@@ -766,7 +766,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-24-1640';
+const BUILD='2026-11-24-2010';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
