@@ -172,7 +172,6 @@ body.ingame{overflow:hidden}
       <div class="menu2"><button class="ghost big" type="button" id="homeShop">상점</button><button class="ghost big" type="button" id="homeRank">랭킹</button></div>
     </div>
     <p class="best" id="homeBest"></p>
-    <div class="update" id="upd" hidden>새 버전이 나왔어요! <button type="button" id="updBtn">새로고침</button></div>
   </div>
 </main>
 
@@ -767,11 +766,11 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-24-1635';
+const BUILD='2026-11-24-1640';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
-  if(m&&m[1]!==BUILD){$('upd').hidden=false;if(state!=='play'&&!$('home').hidden&&!sessionStorage.getItem('bolt-upd-'+m[1])){try{sessionStorage.setItem('bolt-upd-'+m[1],'1')}catch(e){}location.replace(freshUrl())}}}catch(e){}}
-$('updBtn').addEventListener('click',()=>location.replace(freshUrl()));
+  let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
+  if(m&&m[1]!==BUILD&&!seen&&state!=='play'&&!$('home').hidden){try{sessionStorage.setItem('bolt-upd-'+m[1],'1')}catch(e){}location.replace(freshUrl())}}catch(e){}}
 checkUpdate();setInterval(()=>{if(state!=='play')checkUpdate()},60000);
 render();homeBest();loadRank();setInterval(()=>{if(state!=='play'&&!document.hidden)loadRank()},20000);
 function myName(){return ls.get('bolt-name','').slice(0,10)}
