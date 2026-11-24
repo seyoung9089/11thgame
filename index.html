@@ -409,9 +409,10 @@ function spawnWave(){
   if(G.idle>1.2||(t>10&&Math.random()<(t>120?.4:.25)))strike(G.p.x+G.p.vx*warn*.6,G.p.y+G.p.vy*warn*.6,rad(),warn);
 }
 function gain(pts,x,y,gold){
-  G.combo=(G.t-G.last<1.5)?Math.min(G.combo+1,5):1;G.last=G.t;
+  G.combo=(G.t-G.last<COMBO_T)?Math.min(G.combo+1,COMBO_MAX):1;G.last=G.t;
   const v=pts*G.combo;G.score+=v;G.fx.push({x,y,txt:'+'+v+(G.combo>1?' x'+G.combo:''),life:1,gold});
 }
+const COMBO_MAX=10, COMBO_T=2;
 const BOOT_MUL=1.7, BOOT_TIME=7;
 function drawBoot(c,x,y,R){c.save();c.translate(x,y);
   c.fillStyle='#fff';c.beginPath();c.moveTo(-R*.35,-R*.55);c.quadraticCurveTo(-R*1.3,-R*1.1,-R*1.45,-R*.35);c.quadraticCurveTo(-R*1.05,-R*.55,-R*1.2,-R*.05);c.quadraticCurveTo(-R*.8,-R*.25,-R*.4,-R*.05);c.closePath();c.fill();
@@ -594,7 +595,7 @@ function draw(dt){
   G.shake=Math.max(0,G.shake-dt);
 }
 function hud(){
-  const pad=W*.025,sc=G.score.toLocaleString('ko-KR'),tm=G.t.toFixed(1)+'초',cb=G.t-G.last<1.5&&G.combo>1;
+  const pad=W*.025,sc=G.score.toLocaleString('ko-KR'),tm=G.t.toFixed(1)+'초',cb=G.t-G.last<COMBO_T&&G.combo>1;
   const big=Math.round(clamp(W*.07,24,46)),small=Math.round(clamp(W*.032,13,20));
   ctx.save();ctx.textAlign='right';ctx.textBaseline='top';ctx.lineJoin='round';
   ctx.font=`400 ${big}px "Black Han Sans",sans-serif`;const w1=ctx.measureText(sc).width;
@@ -604,7 +605,10 @@ function hud(){
   ctx.fillStyle='#ffe94d';ctx.font=`400 ${big}px "Black Han Sans",sans-serif`;ctx.fillText(sc,W-pad*1.8,pad*1.4);
   ctx.fillStyle='#f3efe6';ctx.font=`700 ${small}px "Noto Sans KR",sans-serif`;ctx.fillText(line2,W-pad*1.8,pad*1.5+big);
   if(cb){ctx.fillStyle='#ffb52e';ctx.font=`900 ${small+4}px "Noto Sans KR",sans-serif`;ctx.lineWidth=4;ctx.strokeStyle='#120f1a';
-    const t='콤보 x'+G.combo;ctx.strokeText(t,W-pad*1.8,pad*2+bh);ctx.fillText(t,W-pad*1.8,pad*2+bh)}
+    const t='콤보 x'+G.combo+(G.combo>=COMBO_MAX?' MAX':'');ctx.strokeText(t,W-pad*1.8,pad*2+bh);ctx.fillText(t,W-pad*1.8,pad*2+bh);
+    const left=Math.max(0,1-(G.t-G.last)/COMBO_T),barW=Math.max(w1,ctx.measureText(t).width,W*.16),barH=Math.max(6,small*.45),bx=W-pad*1.8-barW,by=pad*2.4+bh+small+4;
+    ctx.fillStyle='rgba(18,15,26,.6)';rrect(ctx,bx-2,by-2,barW+4,barH+4,(barH+4)/2);ctx.fill();
+    ctx.fillStyle=left<.3?'#ff5a3d':'#ffb52e';if(left>0){rrect(ctx,bx,by,barW*left,barH,barH/2);ctx.fill()}}
   { const r=clamp(W*.045,18,30),cx=pad+r+4,cy=W-pad-r-4,D=G.dash,k=D.cd/DASH_CD;
     ctx.fillStyle='rgba(18,15,26,.6)';ctx.beginPath();ctx.arc(cx,cy,r+5,0,7);ctx.fill();
     ctx.fillStyle=k>0?'rgba(255,233,77,.25)':'#ffe94d';ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
@@ -766,7 +770,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-24-2010';
+const BUILD='2026-11-24-2030';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
