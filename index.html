@@ -756,15 +756,14 @@ function update(dt){
   if(G.gold){G.gold.life-=dt;if(G.gold.life<=0)G.gold=null}
   for(const s of G.strikes){
     s.age+=dt;
-    if(s.age>=s.warn&&!s.hit){s.hit=true;G.flash=calm?.08:.22;G.shake=Math.max(G.shake,calm?0:.12);
+    if(s.age>=s.warn&&!s.hit){s.hit=true;if(!G.dead&&G.dash.t<=0&&dist(s.x,s.y,P.x,P.y)<s.r+PR*.5)die();G.flash=calm?.08:.22;G.shake=Math.max(G.shake,calm?0:.12);
       for(let i=G.stars.length-1;i>=0;i--)if(dist(s.x,s.y,G.stars[i].x,G.stars[i].y)<s.r){G.stars.splice(i,1);setTimeout(()=>state==='play'&&addStar(),500)}
       if(G.gold&&dist(s.x,s.y,G.gold.x,G.gold.y)<s.r)G.gold=null;
       if(G.coin&&dist(s.x,s.y,G.coin.x,G.coin.y)<s.r)G.coin=null;
       if(G.boot&&dist(s.x,s.y,G.boot.x,G.boot.y)<s.r)G.boot=null;
       if(G.dbl&&dist(s.x,s.y,G.dbl.x,G.dbl.y)<s.r)G.dbl=null}
-    if(s.age>=s.warn&&s.age<s.warn+.22&&!G.dead&&G.dash.t<=0&&dist(s.x,s.y,P.x,P.y)<s.r+PR*.5)die();
   }
-  G.strikes=G.strikes.filter(s=>{if(s.age>=s.warn+.24){G.scorch.push({x:s.x,y:s.y,r:s.r,life:1});return false}return true});
+  G.strikes=G.strikes.filter(s=>{if(s.age>=s.warn+.14){G.scorch.push({x:s.x,y:s.y,r:s.r,life:1});return false}return true});
 }
 function starPath(x,y,R){ctx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?R*.45:R;ctx.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}ctx.closePath()}
 function ground(){
@@ -1077,7 +1076,7 @@ function draw(dt){
   if(G.dash.t>0){ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(G.p.x*W,G.p.y*W,PR*W*1.35,0,7);ctx.stroke()}
   if(trail==='fx_dragon'&&!calm&&!G.dead){const R=PR*W,pts=pathFromHist(G.hist.map(q=>({x:q.x*W,y:q.y*W})),R*1.3,-R*2.5,20,R*.42,R*.35);drawDragon(ctx,pts,R*.62,.95,Math.sin(clock*2.2)>.2)}
   hero();
-  for(const s of G.strikes){if(s.age<s.warn||s.age>s.warn+.24)continue;
+  for(const s of G.strikes){if(s.age<s.warn||s.age>s.warn+.14)continue;
     const cx=s.x*W,cy=s.y*W,sx=s.ox!=null?s.ox*W:cx+(Math.random()-.5)*W*.15,sy=s.oy!=null?s.oy*W:-10,seg=9,pts=[[sx,sy]];
     for(let i=1;i<seg;i++){const t=i/seg;pts.push([sx+(cx-sx)*t+(Math.random()-.5)*W*.07*Math.sin(Math.PI*t),sy+(cy-sy)*t])}pts.push([cx,cy]);
     const line=()=>{ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke()};
@@ -1365,7 +1364,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1605';
+const BUILD='2026-11-25-1650';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
