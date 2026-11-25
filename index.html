@@ -549,6 +549,23 @@ function dashFx(arr,x,y,dx,dy,skin,phase,pr){const r=Math.random,leg=LEG.has(ski
       for(let i=0;i<16;i++){const a=i*Math.PI/8,v=.2+r()*.1;P({type:'dspark',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-.05,g:.5,life:.7})}
       for(let i=0;i<8;i++)P({type:'dflame',x:x+(r()-.5)*.04,y:y+(r()-.5)*.04,vx:(r()-.5)*.06,vy:-.07-r()*.05,life:.8})}
     break}
+  case 'dash_slash':{const sw=phase==='start'?1:0;
+    if(phase==='start'||phase==='end'){P({type:'dslash',x,y,life:.4,big:1,ang:0});if(phase==='end'){P({type:'dslash',x,y,life:.45,big:1,ang:.9});P({type:'dslash',x,y,life:.45,big:1,ang:-.9});P({type:'dring',x,y,life:.45,col:'170,220,255'});for(let i=0;i<14;i++){const a=r()*7;P({type:'dspark',x,y,vx:Math.cos(a)*.3,vy:Math.sin(a)*.3,g:.3,life:.5})}}}
+    else{P({type:'dslash',x,y,life:.3,ang:(r()-.5)*.8});if(r()<.7)P({type:'dspark',x,y,vx:(r()-.5)*.25-dx*.1,vy:(r()-.5)*.25-dy*.1,g:.2,life:.4})}break}
+  case 'dash_phoenix':if(phase==='start'||phase==='end'){P({type:'dwing',x,y,life:.6});P({type:'dfireball',x,y,life:.4});P({type:'dring',x,y,life:.5,col:'255,170,60'});for(let i=0;i<10;i++){const a=r()*7;P({type:'dspark',x,y,vx:Math.cos(a)*.22,vy:Math.sin(a)*.22-.05,g:.4,life:.7})}}
+    else{if(r()<.4)P({type:'dwing',x,y,life:.3});P({type:'dflame',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,vx:-dx*.06,vy:-dy*.06-.04,life:.7});P({type:'dfeather',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,vx:(r()-.5)*.08-dx*.04,vy:-.03-r()*.04,life:.9})}break;
+  case 'dash_frost':if(phase==='start'||phase==='end'){P({type:'dring',x,y,life:.5,col:'160,230,255'});P({type:'dring',x,y,life:.35,col:'255,255,255'});for(let i=0;i<12;i++){const a=i*Math.PI/6;P({type:'dcrystal',x,y,vx:Math.cos(a)*.22,vy:Math.sin(a)*.22,life:.6})}}
+    else{for(let i=0;i<2;i++)P({type:'dcrystal',x:x+(r()-.5)*.04,y:y+(r()-.5)*.04,vx:(r()-.5)*.05,vy:(r()-.5)*.05+.02,life:.6});P({type:'snow',x:x+(r()-.5)*.05,y,vy:.02,life:.6})}break;
+  case 'dash_sun':if(phase==='start'||phase==='end'){P({type:'dsun',x,y,life:.55,big:1});P({type:'dring',x,y,life:.55,col:'255,215,90'});P({type:'dring',x,y,life:.4,col:'255,140,40'});for(let i=0;i<14;i++){const a=i*Math.PI/7;P({type:'dspark',x,y,vx:Math.cos(a)*.25,vy:Math.sin(a)*.25,g:.1,life:.6})}}
+    else{P({type:'dsun',x,y,life:.35});if(r()<.6)P({type:'dspark',x,y,vx:(r()-.5)*.3,vy:(r()-.5)*.3,life:.5})}break;
+  case 'dash_galaxy':if(phase==='start'||phase==='end'){P({type:'dgalaxy',x,y,life:.65});P({type:'dring',x,y,life:.5,col:'170,130,255'});for(let i=0;i<12;i++){const a=r()*7;P({type:'novastar',x,y,vx:Math.cos(a)*.2,vy:Math.sin(a)*.2,life:.5})}}
+    else{if(r()<.35)P({type:'dgalaxy',x,y,life:.3});for(let i=0;i<2;i++){const a=r()*7;P({type:'novastar',x:x+Math.cos(a)*.02,y:y+Math.sin(a)*.02,vx:Math.cos(a)*.06,vy:Math.sin(a)*.06,life:.5})}}break;
+  case 'dash_blossom':if(phase==='start'||phase==='end'){P({type:'dring',x,y,life:.5,col:'255,170,205'});for(let i=0;i<18;i++){const a=i*Math.PI/9,v=.12+r()*.14;P({type:'sakura',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.9})}}
+    else{for(let i=0;i<3;i++){const ph=clock*14+i*2.1;P({type:'sakura',x:x+Math.cos(ph)*.03,y:y+Math.sin(ph)*.03,vx:-dx*.04+Math.cos(ph)*.06,vy:-dy*.04+Math.sin(ph)*.06,life:.8})}}break;
+  case 'dash_taegeuk':if(phase==='start'||phase==='end'){P({type:'dtg',x,y,life:.6,big:1});P({type:'dring',x,y,life:.5,col:'255,80,100'});P({type:'dring',x,y,life:.4,col:'90,150,255'});for(let i=0;i<8;i++){const a=i*Math.PI/4;P({type:'tgspark',x,y,vx:Math.cos(a)*.22,vy:Math.sin(a)*.22,life:.6})}}
+    else{if(r()<.5)P({type:'dtg',x,y,life:.3});for(let i=0;i<2;i++)P({type:'tgspark',x,y,vx:(r()-.5)*.2,vy:(r()-.5)*.2,life:.5})}break;
+  case 'dash_aurora':if(phase==='start'||phase==='end'){P({type:'dring',x,y,life:.5,col:'120,255,200'});P({type:'dring',x,y,life:.4,col:'190,120,255'});for(let i=0;i<5;i++)P({type:'dribbon',x:x+(i-2)*.025,y,life:.8})}
+    else{if(r()<.5)P({type:'dribbon',x:x+(r()-.5)*.02,y:y+(r()-.5)*.02,life:.6})}break;
   case 'dash_blackhole':if(phase==='start')P({type:'dvortex',x,y,life:.6});else if(phase==='end'){P({type:'dportal',x,y,life:.6});for(let i=0;i<12;i++){const a=i*Math.PI/6;P({type:'dvoid',x,y,vx:Math.cos(a)*.18,vy:Math.sin(a)*.18,life:.5})}}
     else P({type:'dvoid',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,life:.5});break;
   case 'dash_thunder':if(phase==='start'){arr.__tx=x;arr.__ty=y}else if(phase==='end'){P({type:'dbolt',x,y,x0:arr.__tx??x,y0:arr.__ty??y,life:.45});P({type:'dring',x,y,life:.4,col:'150,220,255'})}
@@ -569,6 +586,23 @@ function drawDashFx(c,p,x,y,s,a){
     c.fillStyle=g;c.beginPath();c.arc(x,y,k,0,7);c.fill();return true}
   if(p.type==='ddragon'){const Wp=s/(FX_SIZE*(p.leg?1.35:1))*(p.k||1),pr=Math.min(1,(1-a)/.3),e=1-(1-pr)**3,hx=x+p.dx*DASH_DIST*1.3*e*Wp,hy=y+p.dy*DASH_DIST*1.3*e*Wp,S=s*.95*(p.k||1);
     c.globalAlpha=1;drawDragon(c,dragonPath(hx,hy,p.dx,p.dy,DASH_DIST*1.7*Wp,16,S*1.3,clock*11),S,Math.min(1,a*1.8),true);return true}
+  if(p.type==='dslash'){c.globalCompositeOperation='lighter';const R=s*(p.big?7:4)*(1.25-.45*a);c.translate(x,y);c.rotate(Math.atan2(p.dy,p.dx)+(p.ang||0));
+    const g=c.createLinearGradient(-R*.4,0,R*.6,0);g.addColorStop(0,'rgba(100,190,255,0)');g.addColorStop(.7,`rgba(190,235,255,${.9*a})`);g.addColorStop(1,`rgba(255,255,255,${a})`);c.fillStyle=g;c.shadowColor='#9fdcff';c.shadowBlur=s*1.5;
+    c.beginPath();c.arc(-R*.3,0,R,-1,1,false);c.arc(-R*.75,0,R*1.2985,.7,-.7,true);c.closePath();c.fill();return true}
+  if(p.type==='dwing'){c.globalCompositeOperation='lighter';c.translate(x,y);c.rotate(Math.atan2(p.dy,p.dx));const e=1-a,L=s*(3+4*e);
+    [-1,1].forEach(sd=>{for(let i=0;i<7;i++){const an=Math.PI+sd*(.3+i*.28),Li=L*(1-i*.05)*(.8+.2*Math.sin(i+1));c.save();c.rotate(an);const g=c.createLinearGradient(0,0,Li,0);g.addColorStop(0,`rgba(255,225,120,${.6*a})`);g.addColorStop(.6,`rgba(255,120,35,${.45*a})`);g.addColorStop(1,'rgba(220,40,20,0)');c.fillStyle=g;
+      c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(Li*.5,-s*.55,Li,0);c.quadraticCurveTo(Li*.5,s*.55,0,0);c.fill();c.restore()}});return true}
+  if(p.type==='dfeather'){c.globalCompositeOperation='lighter';c.translate(x,y);c.rotate(p.seed*6+(1-a)*3);const L=s*1.6,g=c.createLinearGradient(-L,0,L,0);g.addColorStop(0,'rgba(255,60,20,0)');g.addColorStop(.5,`rgba(255,190,70,${a})`);g.addColorStop(1,`rgba(255,250,200,${a})`);c.fillStyle=g;
+    c.beginPath();c.moveTo(-L,0);c.quadraticCurveTo(0,-s*.55,L,0);c.quadraticCurveTo(0,s*.55,-L,0);c.fill();return true}
+  if(p.type==='dcrystal'){c.globalCompositeOperation='lighter';c.translate(x,y);c.rotate(p.seed*6+(1-a)*2);const k=s*(.5+.8*a),g=c.createLinearGradient(0,-k*1.4,0,k*1.4);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(.5,`rgba(130,220,255,${.9*a})`);g.addColorStop(1,`rgba(60,130,255,${.6*a})`);
+    c.fillStyle=g;c.shadowColor='#9fe6ff';c.shadowBlur=s;c.beginPath();c.moveTo(0,-k*1.4);c.lineTo(k*.55,0);c.lineTo(0,k*1.4);c.lineTo(-k*.55,0);c.closePath();c.fill();c.strokeStyle=`rgba(255,255,255,${.8*a})`;c.lineWidth=1;c.beginPath();c.moveTo(0,-k*1.4);c.lineTo(0,k*1.4);c.stroke();return true}
+  if(p.type==='dsun'){c.globalCompositeOperation='lighter';const k=s*(p.big?2.2:1.2)*(.6+1.6*(1-a)*(p.big?1:.6));const g=c.createRadialGradient(x,y,0,x,y,k*1.6);g.addColorStop(0,`rgba(255,250,200,${a})`);g.addColorStop(.3,`rgba(255,200,60,${.8*a})`);g.addColorStop(1,'rgba(255,100,20,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,k*1.6,0,7);c.fill();
+    c.translate(x,y);c.rotate(clock*3+p.seed*6);c.fillStyle=`rgba(255,225,110,${.85*a})`;for(let i=0;i<10;i++){c.rotate(Math.PI/5);c.beginPath();c.moveTo(-k*.18,-k*.7);c.lineTo(0,-k*(i%2?1.6:2.3));c.lineTo(k*.18,-k*.7);c.fill()}return true}
+  if(p.type==='dgalaxy'){c.globalCompositeOperation='lighter';const k=s*(2+5*(1-a));let g=c.createRadialGradient(x,y,0,x,y,k);g.addColorStop(0,`rgba(230,220,255,${.3*a})`);g.addColorStop(.4,`rgba(150,100,255,${.25*a})`);g.addColorStop(1,'rgba(40,40,200,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,k,0,7);c.fill();
+    c.translate(x,y);c.rotate(clock*5);for(let arm=0;arm<3;arm++)for(let i=1;i<=14;i++){const t=i/14,an=t*4+arm*2.094,rr=k*t;c.fillStyle=`hsla(${210+t*90},100%,${70+t*20}%,${a*(1-t*.4)})`;c.beginPath();c.arc(Math.cos(an)*rr,Math.sin(an)*rr,s*.22*(1.2-t*.6),0,7);c.fill()}return true}
+  if(p.type==='dtg'){c.globalCompositeOperation='lighter';const k=s*(p.big?1.6:1)*(.7+1.4*(1-a));const g=c.createRadialGradient(x,y,k*.4,x,y,k*2);g.addColorStop(0,`rgba(255,220,240,${.2*a})`);g.addColorStop(1,'rgba(120,80,255,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,k*2,0,7);c.fill();c.globalCompositeOperation='source-over';c.globalAlpha*=.8;c.shadowColor='#ff5a78';c.shadowBlur=s;yy(c,x,y,k,clock*8+p.seed*6);return true}
+  if(p.type==='dribbon'){c.globalCompositeOperation='lighter';const h=p.seed>.5?150:280,Hh=s*(3+4*(1-a)),Ww=s*.8;c.translate(x,y);const g=c.createLinearGradient(0,0,0,-Hh);g.addColorStop(0,`hsla(${h},100%,60%,${.55*a})`);g.addColorStop(1,`hsla(${h+60},100%,70%,0)`);c.fillStyle=g;
+    c.beginPath();c.moveTo(-Ww,0);for(let i=0;i<=8;i++){const t=i/8;c.lineTo(-Ww*(1-t*.5)+Math.sin(clock*8+t*5+p.seed*9)*Ww*.8,-Hh*t)}for(let i=8;i>=0;i--){const t=i/8;c.lineTo(Ww*(1-t*.5)+Math.sin(clock*8+t*5+p.seed*9)*Ww*.8,-Hh*t)}c.closePath();c.fill();return true}
   if(p.type==='dbolt'){const Wp=s/(FX_SIZE*(p.leg?1.35:1)),x0=(p.x0-p.x)*Wp+x,y0=(p.y0-p.y)*Wp+y;c.globalCompositeOperation='lighter';c.lineJoin='round';
     const pts=[[x0,y0]];for(let i=1;i<8;i++){const t=i/8;pts.push([x0+(x-x0)*t+(Math.random()-.5)*s*.9,y0+(y-y0)*t+(Math.random()-.5)*s*.9])}pts.push([x,y]);
     [[s*1.1,`rgba(120,200,255,${.5*a})`],[s*.35,`rgba(255,255,255,${a})`]].forEach(([lw,col])=>{c.strokeStyle=col;c.lineWidth=lw;c.beginPath();pts.forEach(([px,py],i)=>i?c.lineTo(px,py):c.moveTo(px,py));c.stroke()});return true}
@@ -798,7 +832,7 @@ function ground(){
     else{circ(ctx,x,y,W*.005,d.h>.5?'#f3efe6':'#ffd1dc');circ(ctx,x,y,W*.002,'#ffe94d')}}
   const vg=ctx.createRadialGradient(W/2,W/2,W*.45,W/2,W/2,W*.75);vg.addColorStop(0,'rgba(10,8,20,0)');vg.addColorStop(1,'rgba(10,8,20,.55)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,W);
 }
-const LEG=new Set(['dash_flash','dash_dragon','dash_thunder','dash_blackhole','hat_phoenix','hat_cosmos','hat_thunder','fx_aurora','fx_nova','fx_dragon','hat_dragonhorn','hat_ice','hat_sakura','hat_dj','hat_astro','hat_gat','hat_cake','hat_jellyfish','hat_trophy','hat_mushroom','hat_neon','hat_sun','fx_meteor','fx_sakura','fx_lava','fx_ocean','fx_neon','fx_music','fx_candy','fx_ghost','fx_firework','fx_crystal','fx_butterfly','fx_taegeuk']);
+const LEG=new Set(['dash_slash','dash_phoenix','dash_frost','dash_sun','dash_galaxy','dash_blossom','dash_taegeuk','dash_aurora','dash_flash','dash_dragon','dash_thunder','dash_blackhole','hat_phoenix','hat_cosmos','hat_thunder','fx_aurora','fx_nova','fx_dragon','hat_dragonhorn','hat_ice','hat_sakura','hat_dj','hat_astro','hat_gat','hat_cake','hat_jellyfish','hat_trophy','hat_mushroom','hat_neon','hat_sun','fx_meteor','fx_sakura','fx_lava','fx_ocean','fx_neon','fx_music','fx_candy','fx_ghost','fx_firework','fx_crystal','fx_butterfly','fx_taegeuk']);
 const AURA={hat_dragonhorn:['255,90,30','255,200,80'],hat_ice:['150,230,255','255,255,255'],hat_sakura:['255,150,200','255,230,240'],hat_dj:['255,94,240','94,240,255'],hat_astro:['140,200,255','255,255,255'],hat_gat:['80,255,170','200,255,230'],hat_cake:['255,170,200','255,230,120'],hat_jellyfish:['120,240,255','255,140,230'],hat_trophy:['255,210,60','255,255,200'],hat_mushroom:['255,90,80','200,255,120'],hat_neon:['94,240,255','255,94,240'],hat_sun:['255,200,60','255,250,200'],fx_meteor:['255,170,60','255,250,220'],fx_sakura:['255,160,200','255,230,245'],fx_lava:['255,100,20','255,220,100'],fx_ocean:['90,200,255','230,250,255'],fx_neon:['255,94,240','94,240,255'],fx_music:['255,210,90','255,250,200'],fx_candy:['255,111,156','94,240,255'],fx_ghost:['120,255,210','200,255,240'],fx_firework:['255,120,200','255,240,120'],fx_crystal:['155,107,255','94,240,255'],fx_butterfly:['255,170,90','180,140,255'],fx_taegeuk:['216,36,58','31,79,191'],hat_phoenix:['255,140,40','255,220,90'],hat_cosmos:['150,120,255','110,240,255'],hat_thunder:['110,200,255','255,240,150'],fx_aurora:['80,255,180','160,120,255'],fx_nova:['255,255,255','140,230,255'],fx_dragon:['255,90,30','255,200,60']};
 /* ---------- 전설 아이템마다 다른 오라: 모자 = 몸 뒤, 이펙트 = 발밑 ---------- */
 const T=()=>clock;
@@ -1153,37 +1187,37 @@ const ITEMS=[
  {id:'hat_sprout',k:'hat',n:'새싹',p:30},{id:'hat_bunny',k:'hat',n:'토끼 머리띠',p:50},{id:'hat_helmet',k:'hat',n:'안전모',p:50},
  {id:'hat_chef',k:'hat',n:'요리사 모자',p:60},{id:'hat_santa',k:'hat',n:'산타 모자',p:70},{id:'hat_pirate',k:'hat',n:'해적 모자',p:80},
  {id:'hat_cowboy',k:'hat',n:'카우보이 모자',p:80},{id:'hat_grad',k:'hat',n:'학사모',p:90},{id:'hat_devil',k:'hat',n:'악마 뿔',p:100},{id:'hat_halo',k:'hat',n:'천사 링',p:100},
- {id:'hat_phoenix',k:'hat',n:'불사조 왕관',p:300},{id:'hat_cosmos',k:'hat',n:'우주의 고리',p:350},{id:'hat_thunder',k:'hat',n:'천둥신의 투구',p:400},
- {id:'hat_dragonhorn',k:'hat',n:'용의 뿔',p:320},
- {id:'hat_ice',k:'hat',n:'얼음 여왕 왕관',p:330},
- {id:'hat_sakura',k:'hat',n:'벚꽃 화관',p:300},
- {id:'hat_dj',k:'hat',n:'DJ 헤드셋',p:340},
- {id:'hat_astro',k:'hat',n:'우주비행사 헬멧',p:360},
- {id:'hat_gat',k:'hat',n:'신비한 갓',p:380},
- {id:'hat_cake',k:'hat',n:'생일 케이크',p:300},
- {id:'hat_jellyfish',k:'hat',n:'해파리',p:350},
- {id:'hat_trophy',k:'hat',n:'우승 트로피',p:450},
- {id:'hat_mushroom',k:'hat',n:'요정 버섯',p:310},
- {id:'hat_neon',k:'hat',n:'사이버 바이저',p:370},
- {id:'hat_sun',k:'hat',n:'태양신 왕관',p:500},
+ {id:'hat_phoenix',k:'hat',n:'불사조 왕관',p:260},{id:'hat_cosmos',k:'hat',n:'우주의 고리',p:300},{id:'hat_thunder',k:'hat',n:'천둥신의 투구',p:340},
+ {id:'hat_dragonhorn',k:'hat',n:'용의 뿔',p:270},
+ {id:'hat_ice',k:'hat',n:'얼음 여왕 왕관',p:280},
+ {id:'hat_sakura',k:'hat',n:'벚꽃 화관',p:260},
+ {id:'hat_dj',k:'hat',n:'DJ 헤드셋',p:290},
+ {id:'hat_astro',k:'hat',n:'우주비행사 헬멧',p:310},
+ {id:'hat_gat',k:'hat',n:'신비한 갓',p:320},
+ {id:'hat_cake',k:'hat',n:'생일 케이크',p:260},
+ {id:'hat_jellyfish',k:'hat',n:'해파리',p:300},
+ {id:'hat_trophy',k:'hat',n:'우승 트로피',p:380},
+ {id:'hat_mushroom',k:'hat',n:'요정 버섯',p:260},
+ {id:'hat_neon',k:'hat',n:'사이버 바이저',p:310},
+ {id:'hat_sun',k:'hat',n:'태양신 왕관',p:420},
  {id:'dust',k:'fx',n:'기본 흙먼지',p:0},{id:'fx_sparkle',k:'fx',n:'반짝 별가루',p:50},{id:'fx_heart',k:'fx',n:'하트',p:60},
  {id:'fx_fire',k:'fx',n:'불꽃',p:80},{id:'fx_rainbow',k:'fx',n:'무지개',p:120},{id:'fx_bolt',k:'fx',n:'전기 스파크',p:150},
  {id:'fx_eleven',k:'fx',n:'11기',p:11},{id:'fx_foot',k:'fx',n:'발자국',p:30},{id:'fx_bubble',k:'fx',n:'비눗방울',p:40},{id:'fx_leaf',k:'fx',n:'나뭇잎',p:40},{id:'fx_smoke',k:'fx',n:'뭉게 연기',p:40},
  {id:'fx_water',k:'fx',n:'물방울',p:50},{id:'fx_snow',k:'fx',n:'눈송이',p:60},{id:'fx_note',k:'fx',n:'음표',p:70},{id:'fx_petal',k:'fx',n:'벚꽃잎',p:70},
  {id:'fx_galaxy',k:'fx',n:'은하수',p:130},{id:'fx_gold',k:'fx',n:'금가루',p:140},
- {id:'fx_aurora',k:'fx',n:'오로라',p:300},{id:'fx_nova',k:'fx',n:'초신성',p:350},{id:'fx_dragon',k:'fx',n:'용의 숨결',p:400},
- {id:'fx_meteor',k:'fx',n:'유성우',p:400},
- {id:'fx_sakura',k:'fx',n:'벚꽃 폭풍',p:300},
- {id:'fx_lava',k:'fx',n:'용암',p:360},
- {id:'fx_ocean',k:'fx',n:'파도 물보라',p:330},
- {id:'fx_neon',k:'fx',n:'네온 사인',p:350},
- {id:'fx_music',k:'fx',n:'오케스트라',p:320},
- {id:'fx_candy',k:'fx',n:'사탕 폭죽',p:300},
- {id:'fx_ghost',k:'fx',n:'도깨비불',p:340},
- {id:'fx_firework',k:'fx',n:'불꽃놀이',p:420},
- {id:'fx_crystal',k:'fx',n:'크리스털',p:380},
- {id:'fx_butterfly',k:'fx',n:'나비 떼',p:310},
- {id:'fx_taegeuk',k:'fx',n:'태극 소용돌이',p:450},
+ {id:'fx_aurora',k:'fx',n:'오로라',p:260},{id:'fx_nova',k:'fx',n:'초신성',p:300},{id:'fx_dragon',k:'fx',n:'용의 숨결',p:340},
+ {id:'fx_meteor',k:'fx',n:'유성우',p:340},
+ {id:'fx_sakura',k:'fx',n:'벚꽃 폭풍',p:260},
+ {id:'fx_lava',k:'fx',n:'용암',p:310},
+ {id:'fx_ocean',k:'fx',n:'파도 물보라',p:280},
+ {id:'fx_neon',k:'fx',n:'네온 사인',p:300},
+ {id:'fx_music',k:'fx',n:'오케스트라',p:270},
+ {id:'fx_candy',k:'fx',n:'사탕 폭죽',p:260},
+ {id:'fx_ghost',k:'fx',n:'도깨비불',p:290},
+ {id:'fx_firework',k:'fx',n:'불꽃놀이',p:360},
+ {id:'fx_crystal',k:'fx',n:'크리스털',p:320},
+ {id:'fx_butterfly',k:'fx',n:'나비 떼',p:260},
+ {id:'fx_taegeuk',k:'fx',n:'태극 소용돌이',p:380},
  {id:'dash_ghost',k:'dash',n:'기본 잔상',p:0},
  {id:'dash_wind',k:'dash',n:'바람 가르기',p:40},
  {id:'dash_smoke',k:'dash',n:'연막탄',p:50},
@@ -1193,10 +1227,18 @@ const ITEMS=[
  {id:'dash_ink',k:'dash',n:'먹물 붓질',p:90},
  {id:'dash_rainbow',k:'dash',n:'무지개 꼬리',p:100},
  {id:'dash_pixel',k:'dash',n:'픽셀 잔상',p:120},
- {id:'dash_flash',k:'dash',n:'섬광 순간이동',p:350},
- {id:'dash_dragon',k:'dash',n:'용 돌진',p:400},
- {id:'dash_thunder',k:'dash',n:'번개 질주',p:420},
- {id:'dash_blackhole',k:'dash',n:'블랙홀 워프',p:450}];
+ {id:'dash_flash',k:'dash',n:'섬광 순간이동',p:300},
+ {id:'dash_dragon',k:'dash',n:'용 돌진',p:340},
+ {id:'dash_thunder',k:'dash',n:'번개 질주',p:360},
+ {id:'dash_blackhole',k:'dash',n:'블랙홀 워프',p:380},
+ {id:'dash_slash',k:'dash',n:'검기 베기',p:330},
+ {id:'dash_phoenix',k:'dash',n:'불사조 비상',p:360},
+ {id:'dash_frost',k:'dash',n:'빙결 질주',p:320},
+ {id:'dash_sun',k:'dash',n:'태양 돌격',p:380},
+ {id:'dash_galaxy',k:'dash',n:'은하 도약',p:350},
+ {id:'dash_blossom',k:'dash',n:'벚꽃 폭풍',p:300},
+ {id:'dash_taegeuk',k:'dash',n:'태극 질주',p:370},
+ {id:'dash_aurora',k:'dash',n:'오로라 베일',p:340}];
 const wallet={coins:Number(ls.get('bolt-coins','0'))||0,owned:(()=>{try{return JSON.parse(ls.get('bolt-owned','[]'))||[]}catch(e){return[]}})()};
 const owns=id=>id==='none'||id==='dust'||id==='dash_ghost'||wallet.owned.includes(id);
 function setWallet(w){if(!w)return;wallet.coins=Number(w.coins)||0;wallet.owned=Array.isArray(w.owned)?w.owned.map(String):[];
@@ -1276,7 +1318,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1720';
+const BUILD='2026-11-25-1800';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
