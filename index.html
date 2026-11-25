@@ -232,6 +232,7 @@ ol li .skin{display:block;font-size:11px;font-weight:700;background:linear-gradi
     <div class="sheetHead"><h2 id="shT">상점</h2><div class="wallet sm"><i class="coin" aria-hidden="true"></i><b id="shopCoins">0</b></div><button type="button" id="shopX" aria-label="닫기">✕</button></div>
     <div class="tabs" id="shopTabs"><button type="button" data-s="hat" aria-pressed="true">모자</button><button type="button" data-s="fx" aria-pressed="false">달리기 이펙트</button><button type="button" data-s="dash" aria-pressed="false">대쉬 이펙트</button></div>
     <div class="pvwrap"><canvas id="pv" aria-label="스킨 미리보기"></canvas><p class="pvlabel" id="pvLabel"></p></div>
+    <div class="tabs"><button type="button" id="setTog" aria-pressed="true">별 먹을 때 대형 연출(천둥신·태극·신비한 갓): 켜짐</button></div>
     <div class="shopgrid" id="shopGrid"></div>
     <p class="msg" id="shopMsg">코인은 게임 중에 잔디밭에 나타나는 동전을 주워서 모읍니다.</p>
   </div>
@@ -901,11 +902,14 @@ function hero(){
 }
 /* ---------- 고가 아이템 대형 연출: 별 5개마다 / 대쉬가 끝날 때 터집니다 ---------- */
 const SETN=5;
+let setOn=ls.get('bolt-seton','1')!=='0';
+function paintSetTog(){const b=$('setTog');b.setAttribute('aria-pressed',setOn?'true':'false');b.textContent='별 먹을 때 대형 연출(천둥신·태극·신비한 갓): '+(setOn?'켜짐':'꺼짐')}
+$('setTog').addEventListener('click',()=>{setOn=!setOn;ls.set('bolt-seton',setOn?'1':'0');paintSetTog();if(!setOn&&G)G.sets=[]});paintSetTog();
 const SET_OF={hat_thunder:'thunderlord',hat_gat:'gat',fx_taegeuk:'tgwave'};
 const SET_D={sun:2.8,trophy:2.7,thunderlord:2.0,tgwave:2.7,fwshow:2.7,meteors:2.5,blackhole:1.7,thunderdash:1.1,gat:2.8};
 const SET_TXT={sun:['태양신 강림!','255,214,90'],trophy:['우승!','255,214,90'],thunderlord:['천둥신 강림!','150,225,255'],tgwave:['천지조화!','255,120,140'],fwshow:['축포 발사!','255,170,230'],meteors:['유성우!','255,170,80'],gat:['신선 강림!','150,255,210']};
 function addSet(k,x,y,list,delay=0){if(!list.some(s=>s.k===k))list.push({k,x,y,t:-delay,d:SET_D[k]})}
-function fireSets(){if(calm||!G)return;let n=0;[hat,trail].forEach(id=>{const k=SET_OF[id];if(k&&k!=='blackhole'&&k!=='thunderdash')addSet(k,G.p.x,G.p.y,G.sets,n++*1.4)})}
+function fireSets(){if(calm||!G||!setOn)return;let n=0;[hat,trail].forEach(id=>{const k=SET_OF[id];if(k&&k!=='blackhole'&&k!=='thunderdash')addSet(k,G.p.x,G.p.y,G.sets,n++*1.4)})}
 function rr(i){const v=Math.sin(i*127.1+311.7)*43758.5453;return v-Math.floor(v)}
 function stp(c,x,y,R){c.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,q=i%2?R*.45:R;c.lineTo(x+Math.cos(a)*q,y+Math.sin(a)*q)}c.closePath()}
 function boltPath(c,x0,y0,x1,y1,seed,amp){const n=10;c.beginPath();c.moveTo(x0,y0);for(let i=1;i<n;i++){const t=i/n;c.lineTo(x0+(x1-x0)*t+(rr(seed*13+i)-.5)*amp*Math.sin(Math.PI*t),y0+(y1-y0)*t)}c.lineTo(x1,y1)}
@@ -1361,7 +1365,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1555';
+const BUILD='2026-11-25-1605';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
