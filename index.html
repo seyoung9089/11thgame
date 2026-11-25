@@ -668,10 +668,11 @@ function hud(){
   ctx.lineWidth=Math.max(3,big*.14);ctx.strokeStyle='rgba(18,15,26,.85)';
   ctx.fillStyle='#ffe94d';ctx.font=`400 ${big}px "Black Han Sans",sans-serif`;ctx.strokeText(sc,W-pad*1.8,pad*1.4);ctx.fillText(sc,W-pad*1.8,pad*1.4);
   ctx.lineWidth=Math.max(3,small*.3);ctx.fillStyle='#f3efe6';ctx.font=`700 ${small}px "Noto Sans KR",sans-serif`;ctx.strokeText(line2,W-pad*1.8,pad*1.5+big);ctx.fillText(line2,W-pad*1.8,pad*1.5+big);
+  ctx.globalAlpha=1;
   if(cb){ctx.fillStyle='#ffb52e';ctx.font=`900 ${small+4}px "Noto Sans KR",sans-serif`;ctx.lineWidth=4;ctx.strokeStyle='#120f1a';
     const t='콤보 x'+G.combo+(G.combo>=COMBO_MAX?' MAX':'');ctx.strokeText(t,W-pad*1.8,pad*2+bh);ctx.fillText(t,W-pad*1.8,pad*2+bh);
     const left=Math.max(0,1-(G.t-G.last)/COMBO_T),barW=Math.max(w1,ctx.measureText(t).width,W*.16),barH=Math.max(6,small*.45),bx=W-pad*1.8-barW,by=pad*2.4+bh+small+4;
-    ctx.fillStyle='rgba(18,15,26,.35)';rrect(ctx,bx-2,by-2,barW+4,barH+4,(barH+4)/2);ctx.fill();
+    ctx.fillStyle='rgba(18,15,26,.6)';rrect(ctx,bx-2,by-2,barW+4,barH+4,(barH+4)/2);ctx.fill();
     ctx.fillStyle=left<.3?'#ff5a3d':'#ffb52e';if(left>0){rrect(ctx,bx,by,barW*left,barH,barH/2);ctx.fill()}}
   ctx.globalAlpha=1;
   { const r=clamp(W*.045,18,30),cx=pad+r+4,cy=W-pad-r-4,D=G.dash,k=D.cd/DASH_CD;
@@ -866,7 +867,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1205';
+const BUILD='2026-11-25-1210';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
