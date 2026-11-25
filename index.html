@@ -204,8 +204,9 @@ body.ingame{overflow:hidden}
   <div class="topbar"><button type="button" class="back" data-home>← 홈</button></div>
   <section class="rank" aria-label="랭킹">
     <h2>학년 랭킹</h2>
-    <div class="tabs">
-      <button type="button" data-t="all" aria-pressed="true">전체 랭킹</button>
+    <div class="tabs" id="rankTabs">
+      <button type="button" data-t="all" aria-pressed="true">점수</button>
+      <button type="button" data-t="time" aria-pressed="false">버틴 시간</button>
       <button type="button" data-t="me" aria-pressed="false">내 기록</button>
     </div>
     <ol id="list"></ol>
@@ -641,13 +642,16 @@ $('go').addEventListener('click',start);
 function showOver(){
   clearInput();
   const best=Number(ls.get('bolt-best','0'))||0, isBest=G.score>best&&G.score>0;
-  const loc=readLocal();loc.push({name:myName(),avatar,score:G.score,at:Date.now()});loc.sort((a,b)=>b.score-a.score);ls.set('bolt-rank',JSON.stringify(loc.slice(0,15)));
-  $('ovTag').textContent=isBest?'새 최고 기록!':`내 최고 기록 ${best.toLocaleString('ko-KR')}점`;
+  const bestT=Number(ls.get('bolt-best-time','0'))||0, tNow=Math.round(G.t*10)/10, isBestT=tNow>bestT&&tNow>=1;
+  const loc=readLocal();loc.push({name:myName(),avatar,score:G.score,t:tNow,at:Date.now()});loc.sort((a,b)=>b.score-a.score);ls.set('bolt-rank',JSON.stringify(loc.slice(0,15)));
+  $('ovTag').textContent=isBest&&isBestT?'점수·버틴 시간 모두 신기록!':isBest?'새 최고 점수!':isBestT?'버틴 시간 신기록!':`내 최고 기록 ${best.toLocaleString('ko-KR')}점 · ${bestT.toFixed(1)}초`;
   $('ovT').textContent=G.score.toLocaleString('ko-KR')+'점';
   $('ovP').textContent=`${G.t.toFixed(1)}초 버텼습니다 · 코인 +${G.coins}`;
   if(G.coins>0)finishGame(G.coins,Math.round(G.t*10)/10);
   $('saveMsg').textContent='';$('ov').hidden=false;
-  if(isBest){ls.set('bolt-best',G.score);ls.set('bolt-best-t',Math.round(G.t*10)/10);submit(G.score,Math.round(G.t*10)/10,true)}
+  if(isBest){ls.set('bolt-best',G.score);ls.set('bolt-best-t',tNow)}
+  if(isBestT)ls.set('bolt-best-time',tNow);
+  if(isBest||isBestT)submit(G.score,tNow,true);
   homeBest();
   setTimeout(()=>$('go').focus(),50);
 }
@@ -667,7 +671,7 @@ $('homeStart').addEventListener('click',play);
 $('rankStart').addEventListener('click',play);
 $('homeRank').addEventListener('click',()=>show('rankView'));
 document.querySelectorAll('[data-home]').forEach(b=>b.addEventListener('click',()=>show('home')));
-function homeBest(){const b=Number(ls.get('bolt-best','0'))||0;$('homeBest').textContent=b?`내 최고 기록 ${b.toLocaleString('ko-KR')}점 · 기록을 깨면 랭킹에 자동 등록됩니다`:'최고 기록을 세우면 랭킹에 자동 등록됩니다'}
+function homeBest(){const b=Number(ls.get('bolt-best','0'))||0,bt=Number(ls.get('bolt-best-time','0'))||0;$('homeBest').textContent=b||bt?`내 최고 ${b.toLocaleString('ko-KR')}점 · ${bt.toFixed(1)}초 · 기록을 깨면 랭킹에 자동 등록됩니다`:'최고 점수나 버틴 시간 기록을 세우면 랭킹에 자동 등록됩니다'}
 const keymap={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
 addEventListener('keydown',e=>{
   if(!$('picker').hidden){if(e.key==='Escape')closePick(false);if(e.key==='Enter'&&e.target.tagName!=='BUTTON')closePick(true);return}
@@ -689,25 +693,27 @@ cv.addEventListener('pointermove',e=>{if(joy.on){joy.x=e.clientX;joy.y=e.clientY
 ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,()=>{joy.on=false}));
 
 /* ---------- 랭킹 (Supabase) ---------- */
-let tab='all',shared=[],sharedOk=null;
+let tab='all',shared=[],sharedTime=[],sharedOk=null;
 let myKey=ls.get('bolt-key','');if(!myKey){myKey=(crypto.randomUUID?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));ls.set('bolt-key',myKey)}
 let myId=ls.get('bolt-id','');
 const BAD=/시발|씨발|ㅅㅂ|ㅆㅂ|병신|ㅂㅅ|좆|존나|개새|새끼|fuck|shit/i;
 const readLocal=()=>{try{return JSON.parse(ls.get('bolt-rank','[]'))||[]}catch(e){return[]}};
 function render(){
-  const rows=tab==='all'?shared:readLocal();
+  const rows=tab==='all'?shared:tab==='time'?sharedTime:readLocal();
   const list=$('list');
-  if(!rows.length)list.innerHTML=`<li class="empty">${tab==='all'?(sharedOk===false?'랭킹을 불러오지 못했습니다.':'아직 기록이 없습니다. 첫 번째 1등이 되어 보세요!'):'아직 저장한 기록이 없습니다.'}</li>`;
+  if(!rows.length)list.innerHTML=`<li class="empty">${tab!=='me'?(sharedOk===false?'랭킹을 불러오지 못했습니다.':'아직 기록이 없습니다. 첫 번째 1등이 되어 보세요!'):'아직 저장한 기록이 없습니다.'}</li>`;
   else list.innerHTML=rows.slice(0,20).map((r,i)=>{const av=clamp(parseInt(r.avatar,10)||0,0,AV.length-1);
-    return `<li class="${tab==='all'&&r.id&&r.id===myId?'me':''}"><span class="n">${i+1}</span><img src="${thumbs[av]}" alt=""><span class="nm">${esc(r.name||'이름 없음')}</span><span class="sc">${esc((Number(r.score)||0).toLocaleString('ko-KR'))}점</span></li>`}).join('');
-  $('note').textContent=tab==='me'?'이 기기에서 저장한 기록입니다.':sharedOk===null?'랭킹을 불러오는 중입니다…':sharedOk?'한 사람당 최고 기록만 올라갑니다.':'랭킹 서버에 연결하지 못했습니다. 잠시 후 다시 시도됩니다.';
+    const val=tab==='time'?`${(Number(r.t)||0).toFixed(1)}초`:tab==='me'&&r.t?`${(Number(r.score)||0).toLocaleString('ko-KR')}점 · ${(Number(r.t)||0).toFixed(1)}초`:`${(Number(r.score)||0).toLocaleString('ko-KR')}점`;
+    return `<li class="${tab!=='me'&&r.id&&r.id===myId?'me':''}"><span class="n">${i+1}</span><img src="${thumbs[av]}" alt=""><span class="nm">${esc(r.name||'이름 없음')}</span><span class="sc">${esc(val)}</span></li>`}).join('');
+  $('note').textContent=tab==='me'?'이 기기에서 저장한 기록입니다.':sharedOk===null?'랭킹을 불러오는 중입니다…':sharedOk?(tab==='time'?'한 사람당 가장 오래 버틴 기록만 올라갑니다.':'한 사람당 최고 점수만 올라갑니다.'):'랭킹 서버에 연결하지 못했습니다. 잠시 후 다시 시도됩니다.';
 }
-document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.t;document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
+document.querySelectorAll('#rankTabs button').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.t;document.querySelectorAll('#rankTabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
 async function loadRank(){
   const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),10000);
-  try{const r=await fetch(`${SB}/rest/v1/bolt_scores?select=id,name,avatar,score,play_time&order=score.desc,updated_at.asc&limit=30`,{headers:{apikey:SBKEY},signal:ctl.signal});
-    if(!r.ok)throw new Error(r.status);const data=await r.json();
-    shared=Array.isArray(data)?data.map(d=>({id:String(d.id||''),name:String(d.name||'').slice(0,10),avatar:d.avatar,score:Number(d.score)||0})):[];sharedOk=true}
+  try{const q=o=>fetch(`${SB}/rest/v1/bolt_scores?select=id,name,avatar,score,best_time&order=${o},updated_at.asc&limit=30`,{headers:{apikey:SBKEY},signal:ctl.signal}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+    const [a,b]=await Promise.all([q('score.desc'),q('best_time.desc')]);
+    const map=d=>({id:String(d.id||''),name:String(d.name||'').slice(0,10),avatar:d.avatar,score:Number(d.score)||0,t:Number(d.best_time)||0});
+    shared=Array.isArray(a)?a.map(map):[];sharedTime=Array.isArray(b)?b.map(map).filter(x=>x.t>0):[];sharedOk=true}
   catch(e){if(sharedOk!==true)sharedOk=false}
   finally{clearTimeout(tm);render()}
 }
@@ -770,7 +776,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-24-2030';
+const BUILD='2026-11-25-0945';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
@@ -790,7 +796,7 @@ async function submit(score,time,show){
       body:JSON.stringify({p_key:myKey,p_name:name,p_avatar:avatar,p_score:score,p_time:time})});
     if(!r.ok)throw new Error(r.status);
     const res=await r.json();myId=String(res.id||'');ls.set('bolt-id',myId);ls.set('bolt-pending','');lastSent=name;ls.set('bolt-sent-name',name);
-    if(show)$('saveMsg').textContent=`랭킹에 자동 등록됐습니다! 지금 ${Number(res.rank)||'-'}등입니다.`;
+    if(show)$('saveMsg').textContent=`랭킹 자동 등록! 점수 ${Number(res.rank)||'-'}등 · 버틴 시간 ${Number(res.time_rank)||'-'}등`;
     loadRank();
   }catch(e){if(show)$('saveMsg').textContent='랭킹 서버에 연결하지 못했습니다. 다음 접속 때 자동으로 다시 등록합니다.'}
 }
