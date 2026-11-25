@@ -804,8 +804,20 @@ const HAURA={
   hat_dj(c,x,y,R){for(let i=0;i<3;i++){const ph=(T()*1.8+i/3)%1;c.strokeStyle=`rgba(${i%2?'94,240,255':'255,94,240'},${.9*(1-ph)})`;c.lineWidth=R*.12*(1-ph)+1;c.beginPath();c.arc(x,y,R*(1+ph*1.8),0,7);c.stroke()}},
   hat_astro(c,x,y,R){[[1.8,.5,1.2,'#ffcf2e',.16],[2.3,.65,-.8,'#ff7aa8',.12],[1.5,.4,2,'#6fd0ff',.1]].forEach(([a,b,sp,col,r])=>{c.strokeStyle='rgba(200,230,255,.35)';c.lineWidth=1;c.beginPath();c.ellipse(x,y,R*a,R*b,.2,0,7);c.stroke();
     const t=T()*sp,px=x+Math.cos(t)*R*a*Math.cos(.2)-Math.sin(t)*R*b*Math.sin(.2),py=y+Math.cos(t)*R*a*Math.sin(.2)+Math.sin(t)*R*b*Math.cos(.2);circ(c,px,py,R*r*1.5,col)})},
-  hat_gat(c,x,y,R){c.globalCompositeOperation='source-over';const e=Math.min(1,(T()%3)/2);c.strokeStyle='rgba(20,20,30,.55)';c.lineWidth=R*.28;c.lineCap='round';c.beginPath();c.arc(x,y,R*1.7,-Math.PI/2,-Math.PI/2+Math.PI*1.85*e);c.stroke();
-    c.globalCompositeOperation='lighter';c.fillStyle='rgba(90,255,170,.35)';c.beginPath();c.arc(x,y,R*1.25,0,7);c.fill()},
+  hat_gat(c,x,y,R){const t=T(),pu=.5+.5*Math.sin(t*3);c.globalCompositeOperation='lighter';
+    const g=c.createRadialGradient(x,y,R*.4,x,y,R*3.4);g.addColorStop(0,`rgba(120,255,200,${.45+.15*pu})`);g.addColorStop(.45,'rgba(40,200,150,.2)');g.addColorStop(1,'rgba(0,120,100,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,R*3.4,0,7);c.fill();
+    c.save();c.translate(x,y);
+    c.save();c.rotate(t*.7);c.strokeStyle='rgba(150,255,210,.85)';c.lineWidth=R*.07;c.beginPath();c.arc(0,0,R*2.5,0,7);c.stroke();c.beginPath();c.arc(0,0,R*2.15,0,7);c.stroke();
+    for(let i=0;i<12;i++){c.save();c.rotate(i*Math.PI/6);c.lineWidth=R*.1;c.beginPath();if(i%3===0){c.moveTo(0,-R*2.15);c.lineTo(0,-R*2.5)}else{c.moveTo(-R*.12,-R*2.3);c.lineTo(R*.12,-R*2.3)}c.stroke();
+      if(i%3===0){c.fillStyle='rgba(220,255,240,.9)';c.beginPath();c.arc(0,-R*2.5,R*.1,0,7);c.fill()}c.restore()}c.restore();
+    c.save();c.rotate(-t*1.1);c.strokeStyle='rgba(255,230,140,.8)';c.lineWidth=R*.06;c.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3,q=R*1.8;c.lineTo(Math.cos(a)*q,Math.sin(a)*q)}c.closePath();c.stroke();
+    c.beginPath();for(let i=0;i<6;i++){const a=i*Math.PI/3+Math.PI/6,q=R*1.8;c.lineTo(Math.cos(a)*q,Math.sin(a)*q)}c.closePath();c.stroke();c.restore();
+    for(let i=0;i<7;i++){const a=t*1.4+i*Math.PI*2/7,rr=R*(1.55+.35*Math.sin(t*2+i)),px=Math.cos(a)*rr,py=Math.sin(a)*rr*.85;
+      for(let m=5;m>=1;m--){const a2=a-m*.12,x2=Math.cos(a2)*rr,y2=Math.sin(a2)*rr*.85;c.fillStyle=`rgba(90,230,255,${.4-m*.06})`;c.beginPath();c.arc(x2,y2,R*(.22-m*.03),0,7);c.fill()}
+      const fg=c.createRadialGradient(px,py,0,px,py,R*.55);fg.addColorStop(0,'rgba(255,255,255,.95)');fg.addColorStop(.3,'rgba(130,255,220,.85)');fg.addColorStop(1,'rgba(30,160,200,0)');c.fillStyle=fg;c.beginPath();c.arc(px,py,R*.55,0,7);c.fill();
+      c.fillStyle='rgba(160,255,230,.75)';c.beginPath();c.moveTo(px-R*.12,py);c.quadraticCurveTo(px,py-R*.7,px+R*.12,py);c.fill()}
+    for(let i=0;i<10;i++){const ph=(t*.6+i/10)%1,px=Math.sin(i*2.3+t)*R*1.9,py=R*1.4-ph*R*3.6;c.fillStyle=`rgba(180,255,230,${.9*(1-ph)})`;c.beginPath();c.arc(px,py,R*.07*(1-ph*.5),0,7);c.fill()}
+    c.restore()},
   hat_cake(c,x,y,R){c.globalCompositeOperation='source-over';[['#f6c94a','#9a6a00',-1.6,0],['#e8e8f2','#8a8aa0',1.5,1.3],['#ff9fc0','#a83a62',-.9,2.6],['#f6c94a','#9a6a00',1,3.9]].forEach(([hi,lo,dx,o])=>{const bx=x+dx*R,by=y-R*1.6+Math.sin(T()*2+o)*R*.25;
     c.strokeStyle='rgba(255,240,200,.7)';c.lineWidth=1;c.beginPath();c.moveTo(bx,by+R*.42);c.quadraticCurveTo(bx+R*.15,by+R*.9,bx-dx*R*.2,by+R*1.4);c.stroke();
     const g=c.createRadialGradient(bx-R*.12,by-R*.15,R*.02,bx,by,R*.45);g.addColorStop(0,'#ffffff');g.addColorStop(.25,hi);g.addColorStop(1,lo);c.fillStyle=g;
@@ -1209,7 +1221,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1445';
+const BUILD='2026-11-25-1500';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
