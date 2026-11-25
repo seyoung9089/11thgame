@@ -791,7 +791,7 @@ const ITEMS=[
  {id:'hat_phoenix',k:'hat',n:'불사조 왕관',p:300},{id:'hat_cosmos',k:'hat',n:'우주의 고리',p:350},{id:'hat_thunder',k:'hat',n:'천둥신의 투구',p:400},
  {id:'dust',k:'fx',n:'기본 흙먼지',p:0},{id:'fx_sparkle',k:'fx',n:'반짝 별가루',p:50},{id:'fx_heart',k:'fx',n:'하트',p:60},
  {id:'fx_fire',k:'fx',n:'불꽃',p:80},{id:'fx_rainbow',k:'fx',n:'무지개',p:120},{id:'fx_bolt',k:'fx',n:'전기 스파크',p:150},
- {id:'fx_eleven',k:'fx',n:'11학년',p:11},{id:'fx_foot',k:'fx',n:'발자국',p:30},{id:'fx_bubble',k:'fx',n:'비눗방울',p:40},{id:'fx_leaf',k:'fx',n:'나뭇잎',p:40},{id:'fx_smoke',k:'fx',n:'뭉게 연기',p:40},
+ {id:'fx_eleven',k:'fx',n:'11기',p:11},{id:'fx_foot',k:'fx',n:'발자국',p:30},{id:'fx_bubble',k:'fx',n:'비눗방울',p:40},{id:'fx_leaf',k:'fx',n:'나뭇잎',p:40},{id:'fx_smoke',k:'fx',n:'뭉게 연기',p:40},
  {id:'fx_water',k:'fx',n:'물방울',p:50},{id:'fx_snow',k:'fx',n:'눈송이',p:60},{id:'fx_note',k:'fx',n:'음표',p:70},{id:'fx_petal',k:'fx',n:'벚꽃잎',p:70},
  {id:'fx_galaxy',k:'fx',n:'은하수',p:130},{id:'fx_gold',k:'fx',n:'금가루',p:140},
  {id:'fx_aurora',k:'fx',n:'오로라',p:300},{id:'fx_nova',k:'fx',n:'초신성',p:350},{id:'fx_dragon',k:'fx',n:'용의 숨결',p:400}];
@@ -861,7 +861,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1110';
+const BUILD='2026-11-25-1115';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
