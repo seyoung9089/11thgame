@@ -230,7 +230,7 @@ ol li .skin{display:block;font-size:11px;font-weight:700;background:linear-gradi
 <div class="modal" id="shop" hidden role="dialog" aria-modal="true" aria-labelledby="shT">
   <div class="sheet">
     <div class="sheetHead"><h2 id="shT">상점</h2><div class="wallet sm"><i class="coin" aria-hidden="true"></i><b id="shopCoins">0</b></div><button type="button" id="shopX" aria-label="닫기">✕</button></div>
-    <div class="tabs" id="shopTabs"><button type="button" data-s="hat" aria-pressed="true">모자</button><button type="button" data-s="fx" aria-pressed="false">달리기 이펙트</button></div>
+    <div class="tabs" id="shopTabs"><button type="button" data-s="hat" aria-pressed="true">모자</button><button type="button" data-s="fx" aria-pressed="false">달리기 이펙트</button><button type="button" data-s="dash" aria-pressed="false">대쉬 이펙트</button></div>
     <div class="pvwrap"><canvas id="pv" aria-label="스킨 미리보기"></canvas><p class="pvlabel" id="pvLabel"></p></div>
     <div class="shopgrid" id="shopGrid"></div>
     <p class="msg" id="shopMsg">코인은 게임 중에 잔디밭에 나타나는 동전을 주워서 모읍니다.</p>
@@ -310,7 +310,7 @@ function drawAvatar(c,i,x,y,R,face=0,dead=false){
 }
 const thumbs=AV.map((_,i)=>{const t=document.createElement('canvas');t.width=t.height=96;const c=t.getContext('2d');
   c.fillStyle='#4f7745';c.fillRect(0,0,96,96);c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(48,82,24,7,0,0,7);c.fill();drawAvatar(c,i,48,54,26);return t.toDataURL()});
-let hat=ls.get('bolt-hat','none'), trail=ls.get('bolt-trail','dust');
+let hat=ls.get('bolt-hat','none'), trail=ls.get('bolt-trail','dust'), dskin=ls.get('bolt-dash','dash_ghost');
 let avatar=Math.min(AV.length-1,Math.max(0,parseInt(ls.get('bolt-av','0'),10)||0)), pickSel=avatar;
 function showMine(){$('myAv').src=thumbs[avatar];$('myAvName').textContent=AV[avatar].n}
 showMine();
@@ -441,7 +441,7 @@ function dash(){
   let ix=axis('left','right'), iy=axis('up','down');
   if(joy.on){const jx=joy.x-joy.sx,jy=joy.y-joy.sy,l=Math.hypot(jx,jy);if(l>8){ix=jx/l;iy=jy/l}}
   let l=Math.hypot(ix,iy);if(!l){ix=G.p.dx;iy=G.p.dy;l=Math.hypot(ix,iy)||1}
-  const v=DASH_DIST/DASH_TIME;G.dash.vx=ix/l*v;G.dash.vy=iy/l*v;G.dash.t=DASH_TIME;G.dash.cd=DASH_CD;
+  const v=DASH_DIST/DASH_TIME;G.dash.vx=ix/l*v;G.dash.vy=iy/l*v;G.dash.t=DASH_TIME;G.dash.cd=DASH_CD;if(!calm)dashFx(G.trail,G.p.x,G.p.y,ix/l,iy/l,dskin,'start',PR);
   if(ix)G.p.face=Math.sign(ix);G.idle=0;puff(G.p.x,G.p.y);puff(G.p.x,G.p.y);
 }
 function die(){G.dead=true;state='dying';G.shake=calm?0:.5;setTimeout(()=>{state='over';showOver()},900)}
@@ -461,7 +461,44 @@ function emitFx(x,y,tr=trail,arr=G.trail,pr=PR){const r=Math.random,type=tr.slic
   if(type==='dragon'){arr.push({...base,type:'dflame',vx:(r()-.5)*.04,vy:-.06-r()*.05,life:.55,max:.55});
     for(let i=0;i<2;i++)arr.push({...base,type:'dspark',vx:(r()-.5)*.25,vy:-.1-r()*.15,g:.6,life:.7,max:.7,seed:r()});return}
   arr.push({...base,type,vx:v[0],vy:v[1],life:v[2],max:v[2],g:type==='lava'?.25:type==='candy'?.35:0})}
+/* ---------- 대쉬 이펙트: 대쉬 시작(start) · 도중(mid) · 끝(end)에 나오는 효과 ---------- */
+function dashFx(arr,x,y,dx,dy,skin,phase,pr){const r=Math.random,leg=LEG.has(skin),b={seed:r(),hue:(clock*360)%360,leg,dx,dy,vx:0,vy:0};
+  const P=(o)=>arr.push({...b,...o,seed:r(),max:o.life});
+  switch(skin){
+  case 'dash_wind':if(phase==='mid')for(let i=-1;i<=1;i++)P({type:'dwind',x:x-dy*i*.03,y:y+dx*i*.03,life:.3});break;
+  case 'dash_smoke':if(phase!=='mid')for(let i=0;i<8;i++){const a=i*Math.PI/4;P({type:'smoke',x,y:y+pr*.6,vx:Math.cos(a)*.12,vy:Math.sin(a)*.06,life:.6})}else P({type:'smoke',x,y:y+pr*.6,life:.4});break;
+  case 'dash_star':if(phase==='mid')P({type:'dstar',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,life:.5});break;
+  case 'dash_heart':if(phase==='mid')P({type:'heart',x:x+(r()-.5)*.04,y:y+(r()-.5)*.03,vy:-.05,life:.6});else if(phase==='end')for(let i=0;i<6;i++){const a=i*Math.PI/3;P({type:'heart',x,y,vx:Math.cos(a)*.1,vy:Math.sin(a)*.1,life:.6})}break;
+  case 'dash_rainbow':if(phase==='mid')for(let i=0;i<3;i++)P({type:'rainbow',x:x-dy*(i-1)*.012,y:y+dx*(i-1)*.012,hue:(i*60+clock*200)%360,life:.45});break;
+  case 'dash_ink':if(phase==='mid')P({type:'dink',x,y:y+pr*.4,life:.9});else if(phase==='end')for(let i=0;i<5;i++)P({type:'dink',x:x+(r()-.5)*.05,y:y+pr*.4+(r()-.5)*.03,life:.9});break;
+  case 'dash_bubble':if(phase==='mid'&&r()<.6)P({type:'bubble',x:x+(r()-.5)*.03,y,vy:-.03,life:.7});else if(phase==='end')for(let i=0;i<8;i++){const a=i*Math.PI/4;P({type:'bubble',x,y,vx:Math.cos(a)*.08,vy:Math.sin(a)*.08,life:.6})}break;
+  case 'dash_pixel':if(phase==='mid')for(let i=0;i<3;i++)P({type:'dpix',x:x+(r()-.5)*.04,y:y+(r()-.5)*.04,life:.5});break;
+  case 'dash_flash':if(phase==='start'||phase==='end'){P({type:'dflashx',x,y,life:.35});P({type:'dring',x,y,life:.5,col:'255,255,255'});for(let i=0;i<10;i++){const a=r()*7;P({type:'novastar',x,y,vx:Math.cos(a)*.2,vy:Math.sin(a)*.2,life:.45})}}
+    else P({type:'dwind',x,y,life:.2});break;
+  case 'dash_dragon':if(phase==='mid'){for(let i=0;i<3;i++)P({type:'dflame',x:x+(r()-.5)*.02,y:y+(r()-.5)*.02,vx:-dx*.05,vy:-dy*.05-.03,life:.6});P({type:'dspark',x,y,vx:(r()-.5)*.3,vy:-.15-r()*.1,g:.6,life:.6})}
+    else if(phase==='end')P({type:'dring',x,y,life:.5,col:'255,140,40'});break;
+  case 'dash_blackhole':if(phase==='start')P({type:'dvortex',x,y,life:.6});else if(phase==='end'){P({type:'dportal',x,y,life:.6});for(let i=0;i<12;i++){const a=i*Math.PI/6;P({type:'dvoid',x,y,vx:Math.cos(a)*.18,vy:Math.sin(a)*.18,life:.5})}}
+    else P({type:'dvoid',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,life:.5});break;
+  case 'dash_thunder':if(phase==='start'){arr.__tx=x;arr.__ty=y}else if(phase==='end'){P({type:'dbolt',x,y,x0:arr.__tx??x,y0:arr.__ty??y,life:.45});P({type:'dring',x,y,life:.4,col:'150,220,255'})}
+    else P({type:'bolt',x:x+(r()-.5)*.03,y:y+(r()-.5)*.03,life:.3});break;
+  }
+}
+function drawDashFx(c,p,x,y,s,a){
+  if(p.type==='dwind'){c.strokeStyle=`rgba(255,255,255,${a*.9})`;c.lineWidth=Math.max(1.5,s*.22);c.lineCap='round';c.beginPath();c.moveTo(x,y);c.lineTo(x-p.dx*s*6,y-p.dy*s*6);c.stroke();return true}
+  if(p.type==='dstar'){c.globalCompositeOperation='lighter';c.fillStyle=`rgba(255,233,77,${a})`;c.beginPath();for(let i=0;i<10;i++){const t=-Math.PI/2+i*Math.PI/5+p.seed*3,q=i%2?s*.35:s*.8;c.lineTo(x+Math.cos(t)*q,y+Math.sin(t)*q)}c.fill();return true}
+  if(p.type==='dink'){c.translate(x,y);c.rotate(Math.atan2(p.dy,p.dx));c.fillStyle=`rgba(20,15,25,${.7*a})`;c.beginPath();c.ellipse(0,0,s*(1.4+p.seed),s*.55,0,0,7);c.fill();circ(c,s*1.6,s*.3*(p.seed-.5),s*.18,`rgba(20,15,25,${.7*a})`);return true}
+  if(p.type==='dpix'){const k=s*.75;c.fillStyle=['#ff5ef0','#5ef0ff','#ffe94d','#7cff6b','#ffffff'][Math.floor(p.seed*5)];c.globalAlpha=a;c.fillRect(Math.round(x-k/2),Math.round(y-k/2),k,k);return true}
+  if(p.type==='dring'){c.globalCompositeOperation='lighter';c.strokeStyle=`rgba(${p.col||'255,255,255'},${a})`;c.lineWidth=s*.5*a+1;c.beginPath();c.arc(x,y,s*(1+6*(1-a)),0,7);c.stroke();return true}
+  if(p.type==='dflashx'){c.globalCompositeOperation='lighter';const k=s*6*(.4+a),g=c.createRadialGradient(x,y,0,x,y,k);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(1,'rgba(200,240,255,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,k,0,7);c.fill();return true}
+  if(p.type==='dvortex'||p.type==='dportal'){const k=s*(p.type==='dvortex'?4.5*a:1+4*(1-a));c.fillStyle=`rgba(25,10,45,${.75*a})`;c.beginPath();c.arc(x,y,k,0,7);c.fill();
+    c.globalCompositeOperation='lighter';c.strokeStyle=`rgba(170,110,255,${a})`;c.lineWidth=Math.max(1.5,s*.25);for(let i=0;i<4;i++){c.beginPath();for(let t=0;t<=1;t+=.1){const ang=i*Math.PI/2+t*4+clock*(p.type==='dvortex'?-9:9),rr=k*t;c.lineTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr)}c.stroke()}return true}
+  if(p.type==='dvoid'){c.globalCompositeOperation='lighter';circ(c,x,y,s*.35*(.5+a),`rgba(${p.seed>.5?'170,110,255':'90,40,160'},${a})`);return true}
+  if(p.type==='dbolt'){const Wp=s/(FX_SIZE*(p.leg?1.35:1)),x0=(p.x0-p.x)*Wp+x,y0=(p.y0-p.y)*Wp+y;c.globalCompositeOperation='lighter';c.lineJoin='round';
+    const pts=[[x0,y0]];for(let i=1;i<8;i++){const t=i/8;pts.push([x0+(x-x0)*t+(Math.random()-.5)*s*.9,y0+(y-y0)*t+(Math.random()-.5)*s*.9])}pts.push([x,y]);
+    [[s*1.1,`rgba(120,200,255,${.5*a})`],[s*.35,`rgba(255,255,255,${a})`]].forEach(([lw,col])=>{c.strokeStyle=col;c.lineWidth=lw;c.beginPath();pts.forEach(([px,py],i)=>i?c.lineTo(px,py):c.moveTo(px,py));c.stroke()});return true}
+  return false}
 function drawFx(c,p,x,y,s){const a=Math.max(0,p.life/p.max);c.save();c.globalAlpha=Math.min(1,a*1.3);
+  if(drawDashFx(c,p,x,y,s,a)){c.restore();return}
   if(p.type==='sparkle'){const k=s*(.5+.7*a);c.fillStyle=p.seed>.5?'#fff6b8':'#ffffff';c.beginPath();for(let i=0;i<8;i++){const t=i*Math.PI/4+p.seed*3,q=i%2?k*.3:k;c.lineTo(x+Math.cos(t)*q,y+Math.sin(t)*q)}c.fill()}
   else if(p.type==='fire'){c.fillStyle=a>.6?'#ffe14d':a>.3?'#ff8a2a':'#e5483b';c.beginPath();c.arc(x,y,s*(.35+.75*a),0,7);c.fill()}
   else if(p.type==='rainbow'){c.fillStyle=`hsl(${p.hue},90%,65%)`;c.beginPath();c.arc(x,y,s*.8,0,7);c.fill()}
@@ -625,7 +662,8 @@ function update(dt){
   if(l>0){P.dx=ix/(Math.hypot(ix,iy)||1);P.dy=iy/(Math.hypot(ix,iy)||1)}
   if(D.cd>0){D.cd=Math.max(0,D.cd-dt);if(D.cd===0)D.ready=.6}
   if(D.ready>0)D.ready-=dt;
-  if(D.t>0){D.t-=dt;P.vx=D.vx;P.vy=D.vy;if(!calm)G.ghost.push({x:P.x,y:P.y,face:P.face,life:.25})}
+  if(D.t>0){D.t-=dt;P.vx=D.vx;P.vy=D.vy;const dl=Math.hypot(D.vx,D.vy)||1;
+    if(!calm){if(dskin==='dash_ghost'||dskin==='dash_pixel')G.ghost.push({x:P.x,y:P.y,face:P.face,life:.25});dashFx(G.trail,P.x,P.y,D.vx/dl,D.vy/dl,dskin,'mid',PR);if(D.t<=0)dashFx(G.trail,P.x+D.vx*dt,P.y+D.vy*dt,D.vx/dl,D.vy/dl,dskin,'end',PR)}}
   else{const sp=SPD*(G.fast>0?BOOT_MUL:1);P.vx=ix*sp;P.vy=iy*sp}
   P.x=clamp(P.x+P.vx*dt,PR,1-PR);P.y=clamp(P.y+P.vy*dt,PR,1-PR);
   if(l>0){G.idle=0;P.step+=dt*16;if(ix)P.face=Math.sign(ix);if(wasStill||P.face!==oldFace)puff(P.x,P.y)}else{G.idle+=dt;P.step=0}
@@ -665,7 +703,7 @@ function ground(){
     else{circ(ctx,x,y,W*.005,d.h>.5?'#f3efe6':'#ffd1dc');circ(ctx,x,y,W*.002,'#ffe94d')}}
   const vg=ctx.createRadialGradient(W/2,W/2,W*.45,W/2,W/2,W*.75);vg.addColorStop(0,'rgba(10,8,20,0)');vg.addColorStop(1,'rgba(10,8,20,.55)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,W);
 }
-const LEG=new Set(['hat_phoenix','hat_cosmos','hat_thunder','fx_aurora','fx_nova','fx_dragon','hat_dragonhorn','hat_ice','hat_sakura','hat_dj','hat_astro','hat_gat','hat_cake','hat_jellyfish','hat_trophy','hat_mushroom','hat_neon','hat_sun','fx_meteor','fx_sakura','fx_lava','fx_ocean','fx_neon','fx_music','fx_candy','fx_ghost','fx_firework','fx_crystal','fx_butterfly','fx_taegeuk']);
+const LEG=new Set(['dash_flash','dash_dragon','dash_thunder','dash_blackhole','hat_phoenix','hat_cosmos','hat_thunder','fx_aurora','fx_nova','fx_dragon','hat_dragonhorn','hat_ice','hat_sakura','hat_dj','hat_astro','hat_gat','hat_cake','hat_jellyfish','hat_trophy','hat_mushroom','hat_neon','hat_sun','fx_meteor','fx_sakura','fx_lava','fx_ocean','fx_neon','fx_music','fx_candy','fx_ghost','fx_firework','fx_crystal','fx_butterfly','fx_taegeuk']);
 const AURA={hat_dragonhorn:['255,90,30','255,200,80'],hat_ice:['150,230,255','255,255,255'],hat_sakura:['255,150,200','255,230,240'],hat_dj:['255,94,240','94,240,255'],hat_astro:['140,200,255','255,255,255'],hat_gat:['80,255,170','200,255,230'],hat_cake:['255,170,200','255,230,120'],hat_jellyfish:['120,240,255','255,140,230'],hat_trophy:['255,210,60','255,255,200'],hat_mushroom:['255,90,80','200,255,120'],hat_neon:['94,240,255','255,94,240'],hat_sun:['255,200,60','255,250,200'],fx_meteor:['255,170,60','255,250,220'],fx_sakura:['255,160,200','255,230,245'],fx_lava:['255,100,20','255,220,100'],fx_ocean:['90,200,255','230,250,255'],fx_neon:['255,94,240','94,240,255'],fx_music:['255,210,90','255,250,200'],fx_candy:['255,111,156','94,240,255'],fx_ghost:['120,255,210','200,255,240'],fx_firework:['255,120,200','255,240,120'],fx_crystal:['155,107,255','94,240,255'],fx_butterfly:['255,170,90','180,140,255'],fx_taegeuk:['216,36,58','31,79,191'],hat_phoenix:['255,140,40','255,220,90'],hat_cosmos:['150,120,255','110,240,255'],hat_thunder:['110,200,255','255,240,150'],fx_aurora:['80,255,180','160,120,255'],fx_nova:['255,255,255','140,230,255'],fx_dragon:['255,90,30','255,200,60']};
 /* ---------- 전설 아이템마다 다른 오라: 모자 = 몸 뒤, 이펙트 = 발밑 ---------- */
 const T=()=>clock;
@@ -965,12 +1003,25 @@ const ITEMS=[
  {id:'fx_firework',k:'fx',n:'불꽃놀이',p:420},
  {id:'fx_crystal',k:'fx',n:'크리스털',p:380},
  {id:'fx_butterfly',k:'fx',n:'나비 떼',p:310},
- {id:'fx_taegeuk',k:'fx',n:'태극 소용돌이',p:450}];
+ {id:'fx_taegeuk',k:'fx',n:'태극 소용돌이',p:450},
+ {id:'dash_ghost',k:'dash',n:'기본 잔상',p:0},
+ {id:'dash_wind',k:'dash',n:'바람 가르기',p:40},
+ {id:'dash_smoke',k:'dash',n:'연막탄',p:50},
+ {id:'dash_star',k:'dash',n:'별똥별',p:60},
+ {id:'dash_heart',k:'dash',n:'하트 슝',p:60},
+ {id:'dash_bubble',k:'dash',n:'비눗방울 팡',p:70},
+ {id:'dash_ink',k:'dash',n:'먹물 붓질',p:90},
+ {id:'dash_rainbow',k:'dash',n:'무지개 꼬리',p:100},
+ {id:'dash_pixel',k:'dash',n:'픽셀 잔상',p:120},
+ {id:'dash_flash',k:'dash',n:'섬광 순간이동',p:350},
+ {id:'dash_dragon',k:'dash',n:'용 돌진',p:400},
+ {id:'dash_thunder',k:'dash',n:'번개 질주',p:420},
+ {id:'dash_blackhole',k:'dash',n:'블랙홀 워프',p:450}];
 const wallet={coins:Number(ls.get('bolt-coins','0'))||0,owned:(()=>{try{return JSON.parse(ls.get('bolt-owned','[]'))||[]}catch(e){return[]}})()};
-const owns=id=>id==='none'||id==='dust'||wallet.owned.includes(id);
+const owns=id=>id==='none'||id==='dust'||id==='dash_ghost'||wallet.owned.includes(id);
 function setWallet(w){if(!w)return;wallet.coins=Number(w.coins)||0;wallet.owned=Array.isArray(w.owned)?w.owned.map(String):[];
   ls.set('bolt-coins',wallet.coins);ls.set('bolt-owned',JSON.stringify(wallet.owned));
-  if(!owns(hat))hat='none';if(!owns(trail))trail='dust';paintWallet();if(!$('shop').hidden)renderShop()}
+  if(!owns(hat))hat='none';if(!owns(trail))trail='dust';if(!owns(dskin))dskin='dash_ghost';paintWallet();if(!$('shop').hidden)renderShop()}
 function paintWallet(){$('homeCoins').textContent=wallet.coins.toLocaleString('ko-KR');$('shopCoins').textContent=wallet.coins.toLocaleString('ko-KR')}
 async function rpc(fn,body){const r=await fetch(`${SB}/rest/v1/rpc/${fn}`,{method:'POST',headers:{apikey:SBKEY,'Content-Type':'application/json'},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>null);if(!r.ok)throw new Error((j&&j.message)||String(r.status));return j}
@@ -984,6 +1035,11 @@ async function finishGame(coins,time){
 let shopTab='hat',armed=null,armT=0;
 function preview(it){const t=document.createElement('canvas');t.width=t.height=120;const c=t.getContext('2d');
   c.fillStyle='#4f7745';c.fillRect(0,0,120,120);
+  if(it.k==='dash'){const arr=[],leg=LEG.has(it.id),S=120*FX_SIZE*(leg?1.35:1)*1.8;
+    if(it.id==='dash_ghost'||it.id==='dash_pixel')for(let i=0;i<3;i++){c.save();c.globalAlpha=.2+i*.2;drawAvatar(c,avatar,30+i*18,62,18,1);c.restore()}
+    dashFx(arr,.18,.52,1,0,it.id,'start',.15);for(let i=0;i<8;i++)dashFx(arr,.2+i*.065,.52,1,0,it.id,'mid',.15);dashFx(arr,.74,.52,1,0,it.id,'end',.15);
+    for(const p of arr){p.life=p.max*.65;p.x+=p.vx*.15;p.y+=p.vy*.15;if(p.type==='dbolt'){p.x0=p.x-(p.x-p.x0)/1.8;p.y0=p.y-(p.y-p.y0)/1.8}drawFx(c,p,p.x*120,p.y*120,S)}
+    c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(92,98,20,6,0,0,7);c.fill();drawAvatar(c,avatar,92,74,20,1);return t.toDataURL()}
   if(it.k==='hat'){c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(60,100,26,7,0,0,7);c.fill();drawAvatar(c,avatar,60,72,26);if(it.id!=='none')drawHat(c,it.id,60,72,26)}
   else{const type=it.id==='dust'?null:it.id.slice(3);
     if(!type){for(let i=0;i<6;i++)circ(c,22+i*9,88-i*.5,4+i*.6,`rgba(220,235,200,${.15+i*.1})`)}
@@ -991,40 +1047,44 @@ function preview(it){const t=document.createElement('canvas');t.width=t.height=1
     c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(92,98,20,6,0,0,7);c.fill();drawAvatar(c,avatar,92,74,20,1)}
   return t.toDataURL()}
 function renderShop(){
-  const eq=shopTab==='hat'?hat:trail;
+  const eq=shopTab==='hat'?hat:shopTab==='fx'?trail:dskin;
   $('shopGrid').innerHTML=ITEMS.filter(i=>i.k===shopTab).sort((a,b)=>a.p-b.p).map(it=>{const o=owns(it.id),on=eq===it.id,arm=armed===it.id&&performance.now()-armT<3000,poor=!o&&wallet.coins<it.p;
     const st=on?'착용 중':o?'착용하기':arm?'한 번 더 누르면 구매':`<i class="coin"></i>${it.p}`;
-    return `<button type="button" class="item${on?' on':''}${arm?' arm':''}${poor?' poor':''}${LEG.has(it.id)?' leg':''}${(it.k==='hat'?pvHat:pvFx)===it.id&&!on?' pv':''}" data-id="${it.id}">${LEG.has(it.id)?'<span class="legb">전설</span>':''}<img src="${preview(it)}" alt=""><span class="nm">${esc(it.n)}</span><span class="st">${st}</span></button>`}).join('');
+    return `<button type="button" class="item${on?' on':''}${arm?' arm':''}${poor?' poor':''}${LEG.has(it.id)?' leg':''}${(it.k==='hat'?pvHat:it.k==='fx'?pvFx:pvDash)===it.id&&!on?' pv':''}" data-id="${it.id}">${LEG.has(it.id)?'<span class="legb">전설</span>':''}<img src="${preview(it)}" alt=""><span class="nm">${esc(it.n)}</span><span class="st">${st}</span></button>`}).join('');
 }
 let skinT=0;function syncSkin(){clearTimeout(skinT);skinT=setTimeout(()=>{const b=Number(ls.get('bolt-best','0'))||0;if(b>0&&myName())submit(b,Number(ls.get('bolt-best-t','0'))||0,false)},1500)}
 $('shopGrid').addEventListener('click',async e=>{const b=e.target.closest('.item');if(!b)return;const it=ITEMS.find(i=>i.id===b.dataset.id);if(!it)return;
-  if(it.k==='hat')pvHat=it.id;else{pvFx=it.id;pvP=[]}pvStart();
-  if(owns(it.id)){if(it.k==='hat'){hat=it.id;ls.set('bolt-hat',hat)}else{trail=it.id;ls.set('bolt-trail',trail)}$('shopMsg').textContent=`${it.n}을(를) 착용했습니다.`;armed=null;renderShop();syncSkin();return}
+  if(it.k==='hat')pvHat=it.id;else if(it.k==='fx'){pvFx=it.id;pvP=[]}else{pvDash=it.id;pvCycle=1.2}pvStart();
+  if(owns(it.id)){if(it.k==='hat'){hat=it.id;ls.set('bolt-hat',hat)}else if(it.k==='fx'){trail=it.id;ls.set('bolt-trail',trail)}else{dskin=it.id;ls.set('bolt-dash',dskin)}$('shopMsg').textContent=`${it.n}을(를) 착용했습니다.`;armed=null;renderShop();syncSkin();return}
   if(wallet.coins<it.p){$('shopMsg').textContent=`${it.n}을(를) 미리보기로 보여 드려요. 사려면 코인이 ${it.p-wallet.coins}개 더 필요합니다.`;renderShop();return}
   if(armed!==it.id||performance.now()-armT>3000){armed=it.id;armT=performance.now();$('shopMsg').textContent=`${it.n} 미리보기 중 · ${it.p}코인에 사려면 한 번 더 누르세요.`;renderShop();return}
   armed=null;$('shopMsg').textContent='구매하는 중…';
-  try{setWallet(await rpc('bolt_buy',{p_key:myKey,p_item:it.id}));if(it.k==='hat'){hat=it.id;ls.set('bolt-hat',hat)}else{trail=it.id;ls.set('bolt-trail',trail)}
+  try{setWallet(await rpc('bolt_buy',{p_key:myKey,p_item:it.id}));if(it.k==='hat'){hat=it.id;ls.set('bolt-hat',hat)}else if(it.k==='fx'){trail=it.id;ls.set('bolt-trail',trail)}else{dskin=it.id;ls.set('bolt-dash',dskin)}
     $('shopMsg').textContent=`${it.n} 구매 완료! 바로 착용했습니다.`;renderShop();syncSkin()}
   catch(err){$('shopMsg').textContent=/not enough/.test(err.message)?'코인이 부족합니다.':'상점 서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';renderShop()}});
 document.querySelectorAll('#shopTabs button').forEach(b=>b.addEventListener('click',()=>{shopTab=b.dataset.s;armed=null;document.querySelectorAll('#shopTabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderShop()}));
 /* ---------- 상점 미리보기: 사기 전에 움직이는 모습으로 확인 ---------- */
-let pvHat=hat,pvFx=trail,pvP=[],pvRun=false,pvT=0,pvEmit=0,pvPrev=0;
-function pvName(){const a=(ITEMS.find(i=>i.id===pvHat)||{}).n,b=(ITEMS.find(i=>i.id===pvFx)||{}).n;return `미리보기 · ${a||'모자 없음'} + ${b||'기본 흙먼지'}`}
+let pvHat=hat,pvFx=trail,pvDash=dskin,pvCycle=0,pvDashLeft=0,pvGh=[],pvP=[],pvRun=false,pvT=0,pvEmit=0,pvPrev=0;
+function pvName(){const f=id=>(ITEMS.find(i=>i.id===id)||{}).n;return `미리보기 · ${f(pvHat)||'모자 없음'} + ${f(pvFx)||'기본 흙먼지'} + 대쉬 ${f(pvDash)||'기본 잔상'}`}
 function pvLoop(now){if($('shop').hidden){pvRun=false;return}
   const cvp=$('pv'),d=devicePixelRatio||1,w=cvp.clientWidth,h=cvp.clientHeight;if(cvp.width!==Math.round(w*d)){cvp.width=Math.round(w*d);cvp.height=Math.round(h*d)}
-  const c=cvp.getContext('2d');c.setTransform(d,0,0,d,0,0);const dt=Math.min(.05,(now-(pvPrev||now))/1000);pvPrev=now;pvT+=dt;
-  const H=h/w,x=.5+.36*Math.sin(pvT*1.1),y=H*.55+H*.22*Math.sin(pvT*2.2),vx=Math.cos(pvT*1.1),R=w*.04;
+  const c=cvp.getContext('2d');c.setTransform(d,0,0,d,0,0);const dt=Math.min(.05,(now-(pvPrev||now))/1000);pvPrev=now;
+  const H=h/w,pos=t=>[.5+.36*Math.sin(t*1.1),H*.55+H*.22*Math.sin(t*2.2)],R=w*.04;
+  pvCycle+=dt;let phase=null;if(pvDashLeft<=0&&pvCycle>1.6){pvCycle=0;pvDashLeft=.16;phase='start'}
+  pvT+=dt*(pvDashLeft>0?6:1);if(pvDashLeft>0){pvDashLeft-=dt;if(!phase)phase=pvDashLeft<=0?'end':'mid'}
+  const [x,y]=pos(pvT),[x2,y2]=pos(pvT+.01),dl=Math.hypot(x2-x,y2-y)||1,vx=(x2-x)/dl;
+  if(phase){dashFx(pvP,x,y,(x2-x)/dl,(y2-y)/dl,pvDash,phase,R/w);if((pvDash==='dash_ghost'||pvDash==='dash_pixel')&&phase!=='end')pvGh.push({x,y,life:.25})}
   const g=c.createRadialGradient(w/2,h/2,10,w/2,h/2,w*.6);g.addColorStop(0,'#5f8a50');g.addColorStop(1,'#3a5a33');c.fillStyle=g;c.fillRect(0,0,w,h);
   pvEmit-=dt;if(pvEmit<=0){pvEmit=.035;if(pvFx==='dust'){if(Math.random()<.25)pvP.push({type:'smoke',x,y:y+R/w*.9,vx:0,vy:-.02,life:.35,max:.35,seed:0,hue:0})}else emitFx(x,y,pvFx,pvP,R/w)}
-  const leg=LEG.has(pvFx)?1.35:1;
-  for(const p of pvP){p.life-=dt;if(p.g)p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;drawFx(c,p,p.x*w,p.y*w,w*FX_SIZE*leg)}
+  for(const p of pvP){p.life-=dt;if(p.g)p.vy+=p.g*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;drawFx(c,p,p.x*w,p.y*w,w*FX_SIZE*(p.leg?1.35:1))}
+  for(const g2 of pvGh){g2.life-=dt;c.save();c.globalAlpha=Math.max(0,g2.life)*1.6;c.translate(g2.x*w,g2.y*w);drawAvatar(c,avatar,0,0,R,1);c.restore()}pvGh=pvGh.filter(g2=>g2.life>0);
   pvP=pvP.filter(p=>p.life>0);
   const px=x*w,py=y*w,hop=Math.abs(Math.sin(pvT*16))*R*.22;
   c.fillStyle='rgba(0,0,0,.35)';c.beginPath();c.ellipse(px,py+R*1.05,R*.85,R*.28,0,0,7);c.fill();
   c.save();c.translate(px,py-hop);c.rotate(vx*.12);aura(c,0,0,R,pvHat,pvFx);drawAvatar(c,avatar,0,0,R,Math.sign(vx)||1);if(pvHat!=='none')drawHat(c,pvHat,0,0,R,Math.sign(vx)||1);c.restore();
   requestAnimationFrame(pvLoop)}
 function pvStart(){$('pvLabel').textContent=pvName();if(!pvRun){pvRun=true;pvPrev=0;requestAnimationFrame(pvLoop)}}
-function openShop(){armed=null;pvHat=hat;pvFx=trail;pvP=[];$('shopMsg').textContent='아이템을 누르면 위에서 바로 미리보기됩니다. 코인은 게임 중 잔디밭의 동전을 주워 모읍니다.';renderShop();$('shop').hidden=false;pvStart();loadWallet()}
+function openShop(){armed=null;pvHat=hat;pvFx=trail;pvDash=dskin;pvP=[];$('shopMsg').textContent='아이템을 누르면 위에서 바로 미리보기됩니다. 코인은 게임 중 잔디밭의 동전을 주워 모읍니다.';renderShop();$('shop').hidden=false;pvStart();loadWallet()}
 function closeShop(){$('shop').hidden=true;$('homeShop').focus()}
 $('homeShop').addEventListener('click',openShop);$('shopX').addEventListener('click',closeShop);
 $('shop').addEventListener('click',e=>{if(e.target.id==='shop')closeShop()});
@@ -1032,7 +1092,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1330';
+const BUILD='2026-11-25-1345';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
