@@ -265,7 +265,8 @@ const AV=[
  {n:'헤드폰',skin:'#e8b88f',hair:'#1d1a24',h:'bowl',acc:'phones',c:'#7a6cff'},
  {n:'로봇',skin:'#c9d3dd',h:'robot',c:'#ff5a5a'},
  {n:'개구리',skin:'#8bc867',h:'frog'},
- {n:'돼지',skin:'#ffc2cf',h:'pig',c:'#ff8fa8'}
+ {n:'돼지',skin:'#ffc2cf',h:'pig',c:'#ff8fa8'},
+ {n:'초록 외눈이',skin:'#86d65a',h:'cyclops',c:'#d99a2b'}
 ];
 function circ(c,x,y,r,f){c.beginPath();c.arc(x,y,r,0,7);c.fillStyle=f;c.fill()}
 function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
@@ -280,6 +281,8 @@ function drawAvatar(c,i,x,y,R,face=0,dead=false){
     c.fillStyle='#ffb3c1';[-1,1].forEach(d=>{c.beginPath();c.moveTo(x+d*R*.42,y-R*.82);c.lineTo(x+d*R*.78,y-R*1.12);c.lineTo(x+d*R*.8,y-R*.6);c.fill()})}
   if(a.h==='pig'){[-1,1].forEach(d=>{c.fillStyle='#f7a3b5';c.beginPath();c.moveTo(x+d*R*.3,y-R*.82);c.lineTo(x+d*R*.95,y-R*1.12);c.lineTo(x+d*R*.88,y-R*.38);c.closePath();c.fill();
     c.fillStyle='#ff8fa8';c.beginPath();c.moveTo(x+d*R*.45,y-R*.75);c.lineTo(x+d*R*.82,y-R*.95);c.lineTo(x+d*R*.78,y-R*.52);c.closePath();c.fill()})}
+  if(a.h==='cyclops'){c.strokeStyle='#4f9a35';c.lineWidth=Math.max(2,R*.1);c.lineCap='round';c.beginPath();c.moveTo(x,y-R*.9);c.quadraticCurveTo(x+R*.05,y-R*1.2,x,y-R*1.38);c.stroke();
+    [-1,1].forEach(d=>{c.fillStyle=d<0?'#6cc04a':'#8ee06a';c.beginPath();c.ellipse(x+d*R*.3,y-R*1.4,R*.34,R*.15,d*-.5,0,7);c.fill()})}
   if(a.h==='frog'){[-1,1].forEach(d=>{circ(c,x+d*R*.45,y-R*.72,R*.38,a.skin);circ(c,x+d*R*.45+f*.5,y-R*.74,R*.26,'#fff');circ(c,x+d*R*.45+f,y-R*.72,R*.12,'#1d1a24')})}
   if(a.h==='robot'){c.strokeStyle='#8c97a3';c.lineWidth=Math.max(2,R*.1);c.beginPath();c.moveTo(x,y-R);c.lineTo(x,y-R*1.4);c.stroke();circ(c,x,y-R*1.45,R*.16,a.c);
     c.fillStyle=a.skin;rrect(c,x-R,y-R*.95,R*2,R*1.9,R*.42);c.fill()}
@@ -293,6 +296,10 @@ function drawAvatar(c,i,x,y,R,face=0,dead=false){
   if(a.h==='beanie'){c.fillStyle=a.c;c.beginPath();c.arc(x,y-R*.2,R*1.02,Math.PI,Math.PI*2);c.closePath();c.fill();
     c.fillStyle='rgba(0,0,0,.18)';rrect(c,x-R*1.05,y-R*.4,R*2.1,R*.3,R*.12);c.fill();circ(c,x,y-R*1.25,R*.22,'#f3efe6')}
   const ink='#2b2233';
+  if(a.h==='cyclops'){c.fillStyle='#fff';c.beginPath();c.ellipse(x+f*.4,y-R*.1,R*.6,R*.5,0,0,7);c.fill();c.strokeStyle='#4f9a35';c.lineWidth=Math.max(1.5,R*.06);c.stroke();
+    circ(c,x+f*2.2,y-R*.08,R*.31,a.c);circ(c,x+f*2.2,y-R*.08,R*.2,'#8a5a14');circ(c,x+f*2.4,y-R*.08,R*.13,ink);circ(c,x+f*2.2-R*.1,y-R*.18,R*.07,'#fff');
+    c.fillStyle='rgba(255,120,120,.4)';[-1,1].forEach(d=>{c.beginPath();c.ellipse(x+d*R*.62+f,y+R*.4,R*.13,R*.08,0,0,7);c.fill()});
+    c.strokeStyle=ink;c.lineWidth=Math.max(1.5,R*.08);c.beginPath();c.arc(x+f,y+R*.38,R*.2,.25,Math.PI-.25);c.stroke();return}
   if(a.h==='robot'){c.fillStyle='#1d2330';rrect(c,x-R*.72+f,y-R*.32,R*1.44,R*.5,R*.2);c.fill();
     [-1,1].forEach(d=>circ(c,x+d*R*.34+f,y-R*.07,R*.1,'#6ff0ff'));c.fillStyle='#8c97a3';rrect(c,x-R*.3+f,y+R*.42,R*.6,R*.12,R*.05);c.fill();return}
   if(a.h==='pig'){[-1,1].forEach(d=>circ(c,x+d*R*.38+f,y-R*.12,R*.1,ink));
@@ -1318,7 +1325,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('shop').hidden)closeShop(
 paintWallet();loadWallet();
 try{const p=JSON.parse(ls.get('bolt-coin-pend','null'));if(p&&p.c>0)finishGame(0,0)}catch(e){}
 /* ---------- 새 버전 확인 (브라우저 캐시 때문에 옛 버전이 보이는 것 방지) ---------- */
-const BUILD='2026-11-25-1800';
+const BUILD='2026-11-26-1925';
 const freshUrl=()=>location.href.split('#')[0].split('?')[0]+'?v='+Date.now();
 async function checkUpdate(){try{const h=await (await fetch(freshUrl(),{cache:'no-store'})).text();const m=h.match(/const BUILD='([^']+)'/);
   let seen=null;try{seen=sessionStorage.getItem('bolt-upd-'+(m&&m[1]))}catch(e){}
